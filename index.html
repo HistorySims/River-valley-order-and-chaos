@@ -1,722 +1,1414 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>River Valley: Order vs Chaos</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@400;700&display=swap');
-        
-        body { font-family: 'Lato', sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
-        h1, h2, h3, .cinzel { font-family: 'Cinzel', serif; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>River Valley: Order &amp; Chaos</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Lato:wght@400;700&display=swap');
 
-        /* --- Visual Textures --- */
-        .pattern-cracked {
-            background-color: #e5e5e5;
-            background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h40v40H0V0zm20 20h20v20H20V20zM0 20h20v20H0V20z' fill='%23d4d4d4' fill-opacity='0.4'/%3E%3Cpath d='M10 0l10 20-10 20L0 20z' fill='%23a3a3a3' fill-opacity='0.1'/%3E%3C/svg%3E");
-        }
-        
-        .pattern-silt {
-            background-color: #292524;
-            background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%231c1917' fill-opacity='0.8' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='1'/%3E%3Ccircle cx='13' cy='13' r='1'/%3E%3C/g%3E%3C/svg%3E");
-        }
+/* ============================= BASE ============================= */
+:root {
+    --accent: #d4a017;
+    --accent-soft: #f5d67b;
+    --panel: #1c1917;
+    --panel-edge: #44403c;
+    --ink: #e7e5e4;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+    font-family: 'Lato', Georgia, sans-serif;
+    background: #0c0a09;
+    color: var(--ink);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    overflow: hidden;
+}
+h1, h2, h3, .cinzel { font-family: 'Cinzel', Georgia, serif; }
+.hidden { display: none !important; }
+button { font-family: inherit; cursor: pointer; border: none; }
 
-        /* --- Game Area --- */
-        .game-area {
-            display: grid;
-            grid-template-columns: auto 1fr;
-            height: 55vh;
-            position: relative;
-            overflow: hidden;
-        }
+/* Civilization theming */
+body.civ-egypt {
+    --accent: #d4a017;
+    --accent-soft: #f5d67b;
+    --sky-top: #1e3a5f;
+    --sky-bot: #e8a33d;
+}
+body.civ-meso {
+    --accent: #c2410c;
+    --accent-soft: #fdba74;
+    --sky-top: #1e1b2e;
+    --sky-bot: #7c5e6a;
+}
 
-        .river-bed {
-            background: linear-gradient(to right, #1e3a8a, #3b82f6);
-            width: 50px;
-            transition: width 1s ease-in-out;
-            position: relative;
-            z-index: 10;
-            border-right: 4px solid #bfdbfe;
-        }
+/* ============================= START SCREEN ============================= */
+#modal-start {
+    position: fixed; inset: 0; z-index: 100;
+    background:
+        radial-gradient(ellipse at 50% 120%, rgba(212,160,23,.18), transparent 60%),
+        linear-gradient(180deg, #0c0a09 0%, #1c1410 100%);
+    display: flex; align-items: center; justify-content: center;
+    padding: 16px; overflow-y: auto;
+}
+.start-card { max-width: 880px; width: 100%; text-align: center; padding: 12px 0; }
+.start-card h1 {
+    font-size: clamp(30px, 6vw, 52px); font-weight: 900; letter-spacing: 2px;
+    background: linear-gradient(180deg, #fde68a, #b45309);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    margin-bottom: 4px;
+}
+.start-card .tagline { color: #a8a29e; font-style: italic; margin-bottom: 26px; font-size: 15px; }
+.civ-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 20px; }
+@media (max-width: 700px) { .civ-grid { grid-template-columns: 1fr; } }
+.civ-card {
+    text-align: left; border-radius: 14px; padding: 20px;
+    background: linear-gradient(180deg, #292524, #1c1917);
+    border: 2px solid #44403c;
+    transition: transform .18s, border-color .18s, box-shadow .18s;
+    color: var(--ink); position: relative; overflow: hidden;
+}
+.civ-card:hover { transform: translateY(-4px); }
+.civ-card.egypt:hover { border-color: #d4a017; box-shadow: 0 10px 40px rgba(212,160,23,.25); }
+.civ-card.meso:hover  { border-color: #dc2626; box-shadow: 0 10px 40px rgba(220,38,38,.25); }
+.civ-card h2 { font-size: 22px; margin-bottom: 2px; }
+.civ-card.egypt h2 { color: #fbbf24; }
+.civ-card.meso  h2 { color: #f87171; }
+.civ-card .sub { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #78716c; margin-bottom: 12px; }
+.civ-card blockquote {
+    font-style: italic; color: #d6d3d1; font-size: 13.5px; line-height: 1.5;
+    border-left: 3px solid var(--panel-edge); padding-left: 10px; margin-bottom: 14px;
+}
+.civ-card .traits { font-size: 13px; color: #a8a29e; display: flex; flex-direction: column; gap: 5px; }
+.civ-card .traits b { color: #e7e5e4; }
+.civ-scene { font-size: 30px; position: absolute; right: 14px; top: 12px; opacity: .9; }
+.round-tag {
+    display: inline-block; font-size: 10px; letter-spacing: 2px; padding: 3px 8px;
+    border-radius: 99px; margin-bottom: 10px; text-transform: uppercase; font-weight: 700;
+}
+.civ-card.egypt .round-tag { background: rgba(212,160,23,.15); color: #fbbf24; border: 1px solid rgba(212,160,23,.4); }
+.civ-card.meso  .round-tag { background: rgba(220,38,38,.15); color: #f87171; border: 1px solid rgba(220,38,38,.4); }
+.howto {
+    font-size: 13px; color: #a8a29e; background: #1c1917; border: 1px solid #292524;
+    border-radius: 10px; padding: 12px 16px; display: flex; gap: 18px; justify-content: center; flex-wrap: wrap;
+}
+.howto span { white-space: nowrap; }
 
-        .farm-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            grid-template-rows: repeat(5, 1fr);
-            gap: 4px;
-            background-color: #78716c;
-            padding: 4px;
-            position: relative;
-        }
+/* ============================= MODALS ============================= */
+.modal-veil {
+    position: fixed; inset: 0; z-index: 90; background: rgba(0,0,0,.78);
+    display: flex; align-items: center; justify-content: center; padding: 16px;
+    animation: veilIn .3s ease-out;
+}
+@keyframes veilIn { from { opacity: 0; } to { opacity: 1; } }
+.modal-box {
+    max-width: 460px; width: 100%; border-radius: 14px; padding: 26px;
+    background: linear-gradient(180deg, #fafaf9, #e7e5e4);
+    color: #1c1917; text-align: center;
+    border: 3px solid var(--accent);
+    box-shadow: 0 20px 80px rgba(0,0,0,.7);
+    animation: popIn .35s cubic-bezier(.2,1.4,.4,1);
+}
+@keyframes popIn { from { transform: scale(.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.modal-box .big-ico { font-size: 52px; margin-bottom: 8px; display: block; }
+.modal-box h2 { font-size: 26px; margin-bottom: 4px; }
+.modal-box h3 { font-size: 15px; color: #57534e; margin-bottom: 14px; font-weight: 700; }
+.modal-box .body { font-size: 14px; text-align: left; background: #f5f5f4; border: 1px solid #d6d3d1; border-radius: 8px; padding: 14px; margin-bottom: 16px; line-height: 1.55; }
+.modal-box .body .row { display: flex; gap: 10px; margin-top: 8px; align-items: flex-start; }
+.modal-box .body .row .ico { font-size: 18px; width: 26px; text-align: center; flex-shrink: 0; }
+.modal-btn {
+    width: 100%; padding: 13px; border-radius: 9px; font-weight: 700; font-size: 15px;
+    background: linear-gradient(180deg, #7e22ce, #6b21a8); color: #fff;
+    box-shadow: 0 4px 0 #4c1d95; transition: transform .1s;
+}
+.modal-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #4c1d95; }
+.modal-btn.gold { background: linear-gradient(180deg, #d4a017, #a16207); box-shadow: 0 4px 0 #713f12; }
+.census-count {
+    font-family: 'Cinzel', serif; font-size: 54px; font-weight: 900; color: #a16207;
+    line-height: 1.1; margin: 6px 0 2px;
+}
+.census-note {
+    background: #fef3c7; border: 2px dashed #d97706; color: #92400e;
+    border-radius: 8px; padding: 10px 14px; font-size: 13.5px; font-weight: 700; margin-bottom: 16px;
+}
 
-        /* Soil States */
-        .soil-dry { 
-            border: 1px dashed #a8a29e; 
-            opacity: 0.9;
-        }
-        
-        .soil-silt { 
-            border: 1px solid #44403c; 
-        }
+/* ============================= LAYOUT ============================= */
+#game-ui { display: flex; flex-direction: column; height: 100dvh; max-width: 1100px; margin: 0 auto; }
 
-        .soil-flooded { 
-            background-color: #60a5fa; 
-            opacity: 0.8; 
-            border: none;
-        }
-        
-        .harvest-ready {
-            border: 3px solid #f59e0b !important;
-            box-shadow: inset 0 0 15px #fcd34d;
-        }
+/* Header */
+header {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 8px 12px; background: linear-gradient(180deg, #292524, #1c1917);
+    border-bottom: 2px solid var(--panel-edge); z-index: 30; flex-wrap: wrap;
+}
+.hdr-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+#btn-menu {
+    background: #292524; color: #a8a29e; border: 1px solid #44403c;
+    padding: 6px 10px; border-radius: 7px; font-size: 12px;
+}
+#btn-menu:hover { color: #fff; border-color: #78716c; }
+#region-title { font-size: clamp(15px, 2.6vw, 22px); color: var(--accent-soft); white-space: nowrap; }
+#season-chip { font-size: 11px; color: #a8a29e; letter-spacing: 1px; text-transform: uppercase; }
+.hdr-right { display: flex; align-items: center; gap: 14px; }
+.stat { display: flex; align-items: center; gap: 6px; font-family: 'Lato'; }
+.stat .ico { font-size: 18px; }
+.stat .val { font-weight: 700; font-size: 18px; color: #fff; font-variant-numeric: tabular-nums; }
+.stat .lbl { font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: #78716c; }
+.stat-col { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+#ui-energy { display: flex; gap: 4px; }
+.pip {
+    width: 13px; height: 13px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fde68a, #d97706);
+    border: 1px solid #92400e; transition: all .3s;
+    box-shadow: 0 0 6px rgba(251,191,36,.5);
+}
+.pip.spent { background: #292524; border-color: #1c1917; box-shadow: none; }
+#mood-chip {
+    display: flex; align-items: center; gap: 6px; background: #1c1917; border: 1px solid #44403c;
+    border-radius: 99px; padding: 4px 12px 4px 6px; cursor: help;
+}
+#mood-face { font-size: 18px; }
+#mood-word { font-size: 11px; font-weight: 700; letter-spacing: .5px; }
+#btn-sound {
+    background: #1c1917; border: 1px solid #44403c; border-radius: 7px;
+    font-size: 15px; padding: 5px 9px; color: #e7e5e4;
+}
 
-        .cell {
-            position: relative;
-            transition: all 0.5s;
-            cursor: pointer;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        
-        .cell:active { transform: scale(0.95); }
+/* ============================= SCENE ============================= */
+.scene { flex: 1; display: flex; flex-direction: column; position: relative; min-height: 0; overflow: hidden; }
+.scene.shake { animation: quake .5s; }
+@keyframes quake {
+    0%,100% { transform: translate(0,0); }
+    15% { transform: translate(-6px,3px); } 30% { transform: translate(5px,-4px); }
+    45% { transform: translate(-5px,-3px); } 60% { transform: translate(4px,3px); }
+    75% { transform: translate(-3px,2px); } 90% { transform: translate(2px,-1px); }
+}
 
-        /* Water Overlay */
-        .flood-water-overlay {
-            position: absolute;
-            top: 0; left: 0; bottom: 0;
-            background: rgba(59, 130, 246, 0.6);
-            z-index: 20;
-            pointer-events: none;
-            transition: width 1s ease-in-out;
-            border-right: 3px solid rgba(255,255,255,0.4);
-        }
+/* Sky */
+.sky {
+    height: 84px; flex-shrink: 0; position: relative; overflow: hidden;
+    background: linear-gradient(180deg, var(--sky-top), var(--sky-bot));
+    transition: background 2s;
+}
+#sun {
+    position: absolute; top: 16px; width: 34px; height: 34px; border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #fff7d6, #fbbf24 60%, rgba(251,191,36,0));
+    box-shadow: 0 0 30px 8px rgba(251,191,36,.45);
+    transition: left 1.4s ease-in-out; left: 10%;
+}
+body.civ-meso #sun { opacity: .75; box-shadow: 0 0 20px 4px rgba(251,191,36,.25); }
+.horizon { position: absolute; bottom: -1px; left: 0; width: 100%; height: 58px; }
+.horizon svg { width: 100%; height: 100%; display: block; }
+#storm-cloud {
+    position: absolute; top: 4px; right: 12%; font-size: 32px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,.5));
+    animation: cloudDrift 4s ease-in-out infinite alternate;
+}
+@keyframes cloudDrift { from { transform: translateX(0); } to { transform: translateX(14px); } }
 
-        /* Levee Visual */
-        .levee-wall {
-            position: absolute;
-            top: 0; bottom: 0; left: 0;
-            width: 15px;
-            background-color: #57534e;
-            background-image: repeating-linear-gradient(0deg, transparent, transparent 10px, #292524 10px, #292524 11px);
-            z-index: 25;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.5);
-            transition: all 0.5s ease-in-out;
-            transform: translateX(-100%);
-        }
-        .levee-built { transform: translateX(0); }
-        .levee-open { 
-            transform: translateY(80%); /* Lowers into the ground */
-            opacity: 0.5;
-        }
-        .levee-broken {
-            background-color: #ef4444;
-            opacity: 0.5;
-            animation: crumble 0.5s forwards;
-        }
-        @keyframes crumble { 0% { opacity: 1; } 100% { opacity: 0; transform: translateY(50px); } }
+/* Field */
+.field { flex: 1; display: grid; grid-template-columns: 62px 1fr 78px; min-height: 0; position: relative; background: #57534e; }
 
-        /* UI Elements */
-        .energy-pip {
-            width: 12px; height: 12px;
-            border-radius: 50%;
-            background-color: #fbbf24;
-            border: 1px solid #b45309;
-            transition: all 0.3s;
-        }
-        .energy-pip.spent {
-            background-color: #44403c;
-            border-color: #292524;
-        }
+/* River */
+#river {
+    position: relative; z-index: 10; overflow: hidden;
+    border-right: 3px solid rgba(191,219,254,.55);
+    transition: all 1.2s;
+}
+.water { position: absolute; inset: 0; background: linear-gradient(90deg, #1e3a8a, #2563eb 70%, #3b82f6); overflow: hidden; }
+.water::before {
+    content: ''; position: absolute; left: 0; right: 0; top: -100%; height: 200%;
+    background: repeating-linear-gradient(180deg,
+        rgba(255,255,255,.13) 0px, rgba(255,255,255,.13) 2px,
+        transparent 2px, transparent 16px,
+        rgba(255,255,255,.06) 16px, rgba(255,255,255,.06) 19px,
+        transparent 19px, transparent 34px);
+    animation: flow 5s linear infinite;
+}
+.water::after {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse 60% 30% at 50% 20%, rgba(255,255,255,.15), transparent 70%);
+    animation: shimmer 3.5s ease-in-out infinite alternate;
+}
+@keyframes flow { to { transform: translateY(50%); } }
+@keyframes shimmer { from { opacity: .4; } to { opacity: 1; } }
+.river-label {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%,-50%) rotate(90deg);
+    font-family: 'Cinzel', serif; font-weight: 700; letter-spacing: 5px; white-space: nowrap;
+    color: rgba(191,219,254,.55); font-size: 15px; z-index: 2; pointer-events: none;
+}
 
-        .log-container {
-            font-family: 'Courier New', monospace;
-            overflow-y: auto;
-        }
-        .log-entry { margin-bottom: 4px; border-bottom: 1px solid #44403c; padding-bottom: 2px; }
-        .log-bad { color: #f87171; }
-        .log-good { color: #4ade80; }
-        .log-info { color: #94a3b8; }
-        .log-warn { color: #fbbf24; }
-        .log-tech { color: #c084fc; font-weight: bold; }
+/* Farm */
+.farm-wrap { position: relative; min-width: 0; }
+#grid {
+    display: grid; height: 100%;
+    grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(5, 1fr);
+    gap: 5px; padding: 6px; background: #57534e; position: relative; z-index: 10;
+}
+.cell {
+    position: relative; border-radius: 5px; overflow: hidden; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform .12s, box-shadow .4s, filter .2s;
+}
+.cell:hover { filter: brightness(1.12); }
+.cell:active { transform: scale(.94); }
+.soil-dry {
+    background-color: #cfc3a5;
+    background-image: url("data:image/svg+xml,%3Csvg width='44' height='44' viewBox='0 0 44 44' xmlns='http://www.w3.org/2000/svg'%3E%3Cg stroke='%23948b6e' stroke-width='1' fill='none' opacity='0.55'%3E%3Cpath d='M6 0 L10 12 L2 22 L11 34 L6 44'/%3E%3Cpath d='M24 0 L20 10 L30 20 L22 32 L27 44'/%3E%3Cpath d='M40 4 L34 16 L42 28 L36 40'/%3E%3Cpath d='M0 14 L12 17 M30 8 L44 12 M14 30 L28 27 M0 38 L14 40 M32 36 L44 33'/%3E%3C/g%3E%3C/svg%3E");
+}
+.soil-silt {
+    background-color: #2e2218;
+    background-image:
+        radial-gradient(circle at 20% 30%, rgba(0,0,0,.35) 1px, transparent 2px),
+        radial-gradient(circle at 70% 60%, rgba(0,0,0,.35) 1px, transparent 2px),
+        radial-gradient(circle at 45% 85%, rgba(90,66,44,.5) 1.5px, transparent 3px),
+        linear-gradient(135deg, #3b2c1e, #241a11);
+    background-size: 18px 18px, 22px 22px, 26px 26px, 100% 100%;
+}
+.soil-silt.fresh { animation: siltGlow 2.5s ease-out; }
+@keyframes siltGlow {
+    0% { box-shadow: inset 0 0 25px rgba(163,230,53,.7); }
+    100% { box-shadow: inset 0 0 0 rgba(163,230,53,0); }
+}
+.soil-flooded { background: linear-gradient(90deg, #1d4ed8, #3b82f6); cursor: default; }
+.soil-flooded::before {
+    content: ''; position: absolute; left: 0; right: 0; top: -100%; height: 200%;
+    background: repeating-linear-gradient(180deg, rgba(255,255,255,.14) 0 2px, transparent 2px 14px);
+    animation: flow 4s linear infinite;
+}
+.harvest-ready { box-shadow: inset 0 0 0 3px #f59e0b, inset 0 0 18px rgba(252,211,77,.75); }
+.crop { position: relative; z-index: 2; transition: transform .4s; line-height: 1; filter: drop-shadow(0 2px 2px rgba(0,0,0,.45)); animation: sprout .35s ease-out; }
+@keyframes sprout { from { transform: scale(0); } }
+.crop.ripe { animation: sway 1.6s ease-in-out infinite alternate; transform-origin: bottom center; }
+@keyframes sway { from { transform: rotate(-6deg) scale(1.05); } to { transform: rotate(6deg) scale(1.05); } }
 
-        @keyframes grow { 0% { transform: scale(0); } 100% { transform: scale(1); } }
-        .plant { animation: grow 0.3s ease-out; }
-        
-        .floater { position: absolute; animation: float-up 1.5s forwards; pointer-events: none; font-weight: bold; z-index: 50; text-shadow: 1px 1px 0 #fff; }
-        @keyframes float-up { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-40px); } }
-    </style>
+/* Levee */
+#levee-wall {
+    position: absolute; top: 0; bottom: 0; left: 0; width: 16px; z-index: 25;
+    background: linear-gradient(90deg, #6b6258, #57534e 60%, #3f3a35);
+    background-image: repeating-linear-gradient(0deg, transparent 0 12px, rgba(0,0,0,.45) 12px 14px),
+                      repeating-linear-gradient(90deg, transparent 0 7px, rgba(0,0,0,.18) 7px 8px);
+    box-shadow: 3px 0 8px rgba(0,0,0,.5);
+    transition: transform .6s ease-in-out, opacity .6s;
+    transform: translateX(-130%);
+}
+#levee-wall.built { transform: translateX(0); }
+#levee-wall.open { transform: translateY(78%); opacity: .55; }
+#levee-wall.broken { animation: crumble .7s forwards; }
+@keyframes crumble {
+    0% { opacity: 1; filter: none; }
+    30% { filter: sepia(1) hue-rotate(-30deg) saturate(3); }
+    100% { opacity: 0; transform: translateY(60px) rotate(4deg); }
+}
+
+/* Flood overlay */
+#flood-overlay {
+    position: absolute; top: 0; bottom: 0; left: 0; width: 0; z-index: 20;
+    pointer-events: none; overflow: hidden;
+    transition: width 1.3s cubic-bezier(.25,.8,.35,1);
+}
+#flood-overlay .water { opacity: .72; }
+#flood-overlay.surging::after {
+    content: ''; position: absolute; top: 0; bottom: 0; right: 0; width: 7px;
+    background: rgba(255,255,255,.75); filter: blur(2px);
+    animation: foam .9s ease-in-out infinite alternate;
+}
+@keyframes foam { from { opacity: .5; } to { opacity: 1; } }
+
+/* Village */
+#village {
+    position: relative; z-index: 10; display: flex; flex-direction: column-reverse;
+    align-items: center; gap: 2px; padding: 8px 2px;
+    background: linear-gradient(180deg, #7a6f5d, #635a4b);
+    border-left: 3px solid #4b4438;
+}
+#village .v-label {
+    position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
+    font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,.55);
+    white-space: nowrap; font-weight: 700;
+}
+.hut { font-size: 24px; line-height: 1.15; filter: drop-shadow(0 2px 2px rgba(0,0,0,.5)); animation: popHut .5s cubic-bezier(.2,1.6,.4,1); }
+@keyframes popHut { from { transform: scale(0) translateY(10px); } }
+
+/* Lightning flash */
+#flash {
+    position: absolute; inset: 0; z-index: 60; pointer-events: none;
+    background: #fff; opacity: 0;
+}
+#flash.zap { animation: zap .6s; }
+@keyframes zap {
+    0% { opacity: 0; } 8% { opacity: .95; } 20% { opacity: .1; }
+    30% { opacity: .7; } 100% { opacity: 0; }
+}
+
+/* Coach hint */
+#coach {
+    position: absolute; z-index: 55; left: 50%; top: 42%; transform: translate(-50%,-50%);
+    background: rgba(12,10,9,.92); border: 1px solid var(--accent); color: #fde68a;
+    padding: 12px 18px; border-radius: 12px; font-size: 14px; text-align: center;
+    box-shadow: 0 8px 30px rgba(0,0,0,.6); pointer-events: none;
+    animation: coachPulse 2s ease-in-out infinite alternate; max-width: 320px;
+}
+@keyframes coachPulse { from { transform: translate(-50%,-50%) scale(1); } to { transform: translate(-50%,-52%) scale(1.03); } }
+
+/* Floaters */
+.floater {
+    position: fixed; z-index: 80; pointer-events: none; font-weight: 700; font-size: 19px;
+    text-shadow: 0 1px 3px rgba(0,0,0,.8); animation: floatUp 1.4s forwards;
+}
+@keyframes floatUp { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-46px); } }
+.f-gold { color: #fcd34d; } .f-white { color: #fff; } .f-blue { color: #93c5fd; } .f-red { color: #fca5a5; } .f-green { color: #bef264; }
+
+/* ============================= FOOTER PANELS ============================= */
+footer {
+    flex-shrink: 0; display: grid; grid-template-columns: 250px 1fr 240px; gap: 8px;
+    background: #1c1917; border-top: 3px solid var(--panel-edge); padding: 8px;
+    z-index: 30; min-height: 148px;
+}
+@media (max-width: 840px) {
+    footer { grid-template-columns: 1fr 1fr; }
+    .panel.log { display: none; }
+}
+@media (max-width: 560px) {
+    footer { grid-template-columns: 1fr; min-height: 0; }
+    .panel.advisor .advisor-text { -webkit-line-clamp: 2; }
+    .sky { height: 56px; }
+}
+.panel { background: #0f0e0d; border: 1px solid #292524; border-radius: 9px; padding: 8px; display: flex; flex-direction: column; gap: 6px; min-height: 0; }
+.panel .p-label { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: #57534e; font-weight: 700; }
+
+/* Controls panel */
+.ctl-top { display: flex; justify-content: space-between; align-items: stretch; gap: 8px; }
+.month-box .m-lbl { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: #57534e; }
+.month-box .m-val { font-family: 'Cinzel', serif; font-weight: 700; font-size: 19px; color: #fff; }
+/* Nilometer */
+#nilometer { display: flex; gap: 7px; align-items: stretch; }
+.nilo-col {
+    width: 17px; border-radius: 4px 4px 2px 2px; position: relative; overflow: hidden;
+    background: linear-gradient(180deg, #78716c, #57534e);
+    border: 1px solid #292524;
+}
+.nilo-col::after {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent 0 5px, rgba(0,0,0,.4) 5px 6px);
+}
+#nilo-water {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 8%;
+    background: linear-gradient(180deg, #60a5fa, #1d4ed8);
+    transition: height 1.2s ease-in-out;
+}
+.nilo-mark {
+    position: absolute; left: -3px; right: -3px; top: 26%; height: 2px; background: #f59e0b;
+    box-shadow: 0 0 5px #f59e0b; z-index: 2;
+}
+.nilo-info { display: flex; flex-direction: column; justify-content: center; }
+.nilo-info .n-lbl { font-size: 8px; letter-spacing: 1.5px; color: #57534e; text-transform: uppercase; font-weight: 700; }
+#ui-flood-timer { font-weight: 700; font-size: 15px; color: #60a5fa; line-height: 1.2; }
+#ui-flood-timer.danger { color: #f87171; animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: .35; } }
+/* Omens */
+#omen-box { display: flex; flex-direction: column; justify-content: center; max-width: 150px; }
+#omen-box .n-lbl { font-size: 8px; letter-spacing: 1.5px; color: #57534e; text-transform: uppercase; font-weight: 700; }
+#omen-text { font-size: 11.5px; font-style: italic; color: #d6d3d1; line-height: 1.35; }
+#meso-status { font-weight: 700; font-size: 12px; }
+.st-calm { color: #a8a29e; } .st-rise { color: #fb923c; } .st-flood { color: #f87171; animation: blink .8s steps(2) infinite; } .st-recede { color: #60a5fa; }
+
+.ctl-btns { display: flex; gap: 7px; flex: 1; min-height: 58px; }
+#levee-controls { width: 84px; display: flex; flex-direction: column; }
+.btn-levee {
+    flex: 1; border-radius: 8px; font-size: 10px; font-weight: 700; color: #e7e5e4;
+    background: linear-gradient(180deg, #57534e, #44403c);
+    box-shadow: 0 3px 0 #292524; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    transition: transform .1s;
+}
+.btn-levee:active { transform: translateY(2px); box-shadow: 0 1px 0 #292524; }
+.btn-levee .b-ico { font-size: 17px; }
+.btn-levee .b-cost { color: #fbbf24; font-size: 9px; }
+#btn-next {
+    flex: 1; border-radius: 9px; font-weight: 700; font-size: 16px; color: #fff;
+    background: linear-gradient(180deg, #2563eb, #1d4ed8);
+    box-shadow: 0 4px 0 #1e3a8a; letter-spacing: .5px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: transform .1s;
+}
+#btn-next:active { transform: translateY(3px); box-shadow: 0 1px 0 #1e3a8a; }
+
+/* Advisor panel */
+.panel.advisor { justify-content: flex-start; }
+.advisor-head { display: flex; align-items: center; gap: 8px; }
+#advisor-face {
+    font-size: 26px; background: #1c1917; border: 2px solid var(--accent);
+    border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+#advisor-name { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--accent-soft); }
+.advisor-text {
+    font-size: 13.5px; font-style: italic; color: #e7e5e4; line-height: 1.45;
+    animation: fadeIn .5s;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; } }
+
+/* Log panel */
+#game-log { overflow-y: auto; flex: 1; font-family: 'Courier New', monospace; font-size: 11px; min-height: 0; max-height: 84px; }
+.log-entry { padding: 1.5px 0; border-bottom: 1px solid #1c1917; }
+.log-bad { color: #f87171; } .log-good { color: #4ade80; } .log-info { color: #78716c; }
+.log-warn { color: #fbbf24; } .log-tech { color: #c084fc; font-weight: 700; }
+.legend { display: flex; gap: 10px; font-size: 10px; color: #a8a29e; flex-wrap: wrap; }
+.legend .sw { width: 11px; height: 11px; border-radius: 2px; display: inline-block; vertical-align: -1px; margin-right: 3px; border: 1px solid #44403c; }
+.sw-silt { background: #2e2218; } .sw-dry { background: #cfc3a5; }
+</style>
 </head>
-<body class="bg-stone-900 text-stone-100 flex flex-col items-center min-h-screen">
+<body>
 
-    <!-- Mode Selection Modal -->
-    <div id="modal-start" class="fixed inset-0 z-50 bg-stone-900 flex items-center justify-center p-4">
-        <div class="max-w-2xl w-full bg-stone-100 text-stone-900 rounded-xl p-8 shadow-2xl border-4 border-amber-600 text-center">
-            <h1 class="text-4xl cinzel font-bold mb-2 text-stone-800">River Civilizations</h1>
-            <p class="text-lg text-stone-600 mb-8 italic">"The land is a gift of the river."</p>
+<!-- ======================= START SCREEN ======================= -->
+<div id="modal-start">
+    <div class="start-card">
+        <h1>RIVER VALLEY</h1>
+        <p class="tagline">Order &amp; Chaos &mdash; "The land is a gift of the river."</p>
 
-            <div class="grid md:grid-cols-2 gap-6">
-                <button onclick="startGame('egypt')" class="group p-6 border-2 border-stone-300 hover:border-amber-500 rounded-xl bg-white hover:bg-amber-50 transition-all shadow-md">
-                    <h2 class="text-2xl font-bold text-amber-600 mb-2 group-hover:scale-105 transition-transform">Egypt (The Nile)</h2>
-                    <div class="text-sm text-stone-500 text-left space-y-2">
-                        <p><i class="fas fa-check text-green-500 w-6"></i> Predictable Cycles</p>
-                        <p><i class="fas fa-clock text-amber-500 w-6"></i> Gradual Rising</p>
-                    </div>
-                </button>
+        <div class="civ-grid">
+            <button class="civ-card egypt" onclick="startGame('egypt')">
+                <span class="civ-scene">&#127963;&#65039;</span>
+                <span class="round-tag">Round 1</span>
+                <h2>Ancient Egypt</h2>
+                <div class="sub">The Nile &middot; Order</div>
+                <blockquote>"The river is not attacking us; it is breathing. Trust the cycle, do your work, and you will be fed."<br>&mdash; Menes's father</blockquote>
+                <div class="traits">
+                    <span>&#128337; <b>Predictable</b> yearly flood &mdash; watch the Nilometer</span>
+                    <span>&#127793; Flood leaves <b>black silt</b>: 3&times; harvest</span>
+                    <span>&#128524; Plan around the calendar and prosper</span>
+                </div>
+            </button>
 
-                <button onclick="startGame('meso')" class="group p-6 border-2 border-stone-300 hover:border-red-500 rounded-xl bg-white hover:bg-red-50 transition-all shadow-md">
-                    <h2 class="text-2xl font-bold text-red-600 mb-2 group-hover:scale-105 transition-transform">Mesopotamia</h2>
-                    <div class="text-sm text-stone-500 text-left space-y-2">
-                        <p><i class="fas fa-bolt text-red-500 w-6"></i> Chaotic Floods</p>
-                        <p><i class="fas fa-shield-alt text-stone-500 w-6"></i> Unlockable Tech</p>
-                    </div>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Tech Unlock Modal -->
-    <div id="modal-tech" class="hidden fixed inset-0 z-[60] bg-black/80 flex items-center justify-center p-4">
-        <div class="max-w-md w-full bg-stone-100 text-stone-900 rounded-xl p-6 shadow-2xl border-4 border-purple-600 text-center animate-bounce-in">
-            <i class="fas fa-hammer text-6xl text-purple-600 mb-4"></i>
-            <h2 class="text-3xl cinzel font-bold mb-2">Technology Discovered!</h2>
-            <h3 class="text-xl font-bold text-stone-700 mb-4">Hydraulic Engineering</h3>
-            <p class="text-sm text-stone-600 mb-6 text-left bg-stone-200 p-4 rounded">
-                Your people have learned to control the waters. You can now build **Levees**.<br><br>
-                <i class="fas fa-lock"></i> **CLOSE GATE:** Blocks floods. Safe crops. No Silt.<br>
-                <i class="fas fa-lock-open"></i> **OPEN GATE:** Lets water in. Captures Silt.
-            </p>
-            <button onclick="closeTechModal()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 rounded shadow-lg">
-                Construct Levees
+            <button class="civ-card meso" onclick="startGame('meso')">
+                <span class="civ-scene">&#9928;&#65039;</span>
+                <span class="round-tag">Round 2</span>
+                <h2>Mesopotamia</h2>
+                <div class="sub">The Tigris &middot; Chaos</div>
+                <blockquote>"Never trust the quiet. The river is a sleeping dragon. You must always be ready."<br>&mdash; Enki's mother</blockquote>
+                <div class="traits">
+                    <span>&#9889; <b>Unpredictable</b> flash floods &mdash; read the omens</span>
+                    <span>&#128679; Unlock <b>levee technology</b> at Month 20</span>
+                    <span>&#128552; Survive chaos through invention</span>
+                </div>
             </button>
         </div>
+
+        <div class="howto">
+            <span>&#128070; Tap a plot to <b>plant</b> (&minus;1 energy)</span>
+            <span>&#127806; Crops ripen in 4 months &mdash; tap to <b>harvest</b></span>
+            <span>&#9203; "Next Month" advances time &amp; refills energy</span>
+        </div>
     </div>
+</div>
 
-    <!-- Main Game UI -->
-    <div id="game-ui" class="w-full max-w-5xl flex flex-col h-screen hidden">
-        
-        <!-- Header -->
-        <div class="bg-stone-800 p-4 shadow-lg flex justify-between items-center z-30 border-b border-stone-700">
-            <div class="flex items-center gap-4">
-                <button onclick="exitToMenu()" class="text-stone-400 hover:text-white px-3 py-1 border border-stone-600 rounded bg-stone-700"><i class="fas fa-arrow-left"></i> Menu</button>
-                <h1 id="region-title" class="text-lg md:text-2xl cinzel font-bold text-amber-500">Region Name</h1>
-            </div>
-            <div class="flex gap-6 font-mono text-lg">
-                <div class="flex items-center gap-2" title="Harvested Food">
-                    <i class="fas fa-wheat text-yellow-500"></i>
-                    <span id="ui-food" class="text-white font-bold">0</span>
-                </div>
-                <div class="flex flex-col items-end">
-                    <div class="text-[10px] text-stone-400 uppercase tracking-widest">Daily Energy</div>
-                    <div id="ui-energy" class="flex gap-1"></div>
-                </div>
+<!-- ======================= TECH MODAL ======================= -->
+<div id="modal-tech" class="modal-veil hidden">
+    <div class="modal-box" style="border-color:#7e22ce;">
+        <span class="big-ico">&#128296;</span>
+        <h2>Technology Discovered!</h2>
+        <h3>Hydraulic Engineering</h3>
+        <div class="body">
+            After 20 months of floods, your engineers have learned to fight the river with
+            <b>walls of earth and brick</b>. You can now build <b>Levees</b>.
+            <div class="row"><span class="ico">&#128274;</span><span><b>CLOSE the gate:</b> blocks small floods. Crops are safe &mdash; but no fresh silt reaches your fields.</span></div>
+            <div class="row"><span class="ico">&#128275;</span><span><b>OPEN the gate:</b> water flows in, drowning crops &mdash; but it leaves rich black silt behind.</span></div>
+            <div class="row"><span class="ico">&#9888;&#65039;</span><span>A <b>massive</b> flood can smash a closed gate. Nothing is certain here.</span></div>
+        </div>
+        <button class="modal-btn" onclick="closeTechModal()">Construct Levees</button>
+    </div>
+</div>
+
+<!-- ======================= CENSUS MODAL ======================= -->
+<div id="modal-census" class="modal-veil hidden">
+    <div class="modal-box">
+        <span class="big-ico">&#128220;</span>
+        <h2 id="census-title">The Scribe's Census</h2>
+        <h3 id="census-sub">Month 20</h3>
+        <div>Total food harvested so far:</div>
+        <div class="census-count" id="census-food">0</div>
+        <div style="font-size:22px; margin-bottom:10px;">&#127806;</div>
+        <div class="census-note" id="census-note">&#9997;&#65039; Pause! Record this number in <b>Part 2</b> of your lab packet before continuing.</div>
+        <button class="modal-btn gold" onclick="closeCensusModal()">Continue</button>
+    </div>
+</div>
+
+<!-- ======================= GAME UI ======================= -->
+<div id="game-ui" class="hidden">
+
+    <header>
+        <div class="hdr-left">
+            <button id="btn-menu" onclick="exitToMenu()">&#8592; Menu</button>
+            <div>
+                <h1 id="region-title" class="cinzel">Region</h1>
+                <div id="season-chip">Season</div>
             </div>
         </div>
+        <div class="hdr-right">
+            <div id="mood-chip" title="How your people feel about the world">
+                <span id="mood-face">&#128528;</span>
+                <span id="mood-word">Watchful</span>
+            </div>
+            <div class="stat" title="Total food harvested">
+                <span class="ico">&#127806;</span>
+                <div class="stat-col"><span class="val" id="ui-food">0</span><span class="lbl">Food</span></div>
+            </div>
+            <div class="stat-col" title="Energy for planting &amp; building — refills each month">
+                <span class="lbl">Energy</span>
+                <div id="ui-energy"></div>
+            </div>
+            <button id="btn-sound" onclick="game &amp;&amp; game.toggleSound()" title="Sound on/off">&#128266;</button>
+        </div>
+    </header>
 
-        <!-- Simulation Area -->
-        <div class="game-area bg-stone-200 flex-grow relative">
-            <div id="river" class="river-bed flex items-center justify-center">
-                <div class="text-blue-200 opacity-50 text-xl font-bold rotate-90 whitespace-nowrap tracking-widest cinzel">THE RIVER</div>
+    <main class="scene" id="scene">
+        <div class="sky">
+            <div id="sun"></div>
+            <div class="horizon" id="horizon-egypt">
+                <svg viewBox="0 0 800 58" preserveAspectRatio="none">
+                    <polygon points="80,58 190,10 300,58" fill="rgba(30,20,10,.55)"/>
+                    <polygon points="240,58 330,22 420,58" fill="rgba(30,20,10,.4)"/>
+                    <polygon points="520,58 585,30 650,58" fill="rgba(30,20,10,.45)"/>
+                    <rect x="0" y="52" width="800" height="6" fill="rgba(30,20,10,.5)"/>
+                    <g fill="rgba(30,20,10,.55)">
+                        <rect x="700" y="34" width="3" height="20"/>
+                        <path d="M701 34 q-10 -8 -16 -4 q10 0 14 6 q-14 -4 -18 2 q12 -1 17 4 q4 -5 16 -4 q-4 -6 -18 -2 q4 -6 14 -6 q-6 -4 -9 4z"/>
+                    </g>
+                </svg>
             </div>
-            <div id="flood-overlay" class="flood-water-overlay" style="width: 0px;"></div>
-            <div id="grid-container" class="farm-grid w-full h-full relative z-10">
-                <div id="levee-wall" class="levee-wall"></div>
+            <div class="horizon hidden" id="horizon-meso">
+                <svg viewBox="0 0 800 58" preserveAspectRatio="none">
+                    <polygon points="0,58 60,18 130,44 200,8 280,48 340,26 400,58" fill="rgba(20,15,25,.5)"/>
+                    <g fill="rgba(20,15,25,.6)">
+                        <rect x="520" y="42" width="120" height="16"/>
+                        <rect x="540" y="30" width="80" height="14"/>
+                        <rect x="558" y="20" width="44" height="12"/>
+                        <rect x="572" y="12" width="16" height="10"/>
+                    </g>
+                    <rect x="0" y="53" width="800" height="5" fill="rgba(20,15,25,.55)"/>
+                </svg>
             </div>
-            <div id="hut" class="absolute right-4 top-1/2 transform -translate-y-1/2 z-40 pointer-events-none transition-all duration-500">
-                <i class="fas fa-campground text-5xl text-stone-800 drop-shadow-2xl"></i>
-                <div class="bg-stone-800 text-white text-xs px-2 py-1 rounded -mt-10 ml-4 shadow-lg">My Hut</div>
-            </div>
+            <div id="storm-cloud" class="hidden">&#9928;&#65039;</div>
         </div>
 
-        <!-- Controls & Log -->
-        <div class="bg-stone-800 p-3 border-t-4 border-stone-600 grid grid-cols-1 md:grid-cols-3 gap-3 h-48 md:h-auto overflow-hidden">
-            
-            <!-- LEFT: Turn Controls -->
-            <div class="flex flex-col gap-2">
-                <div class="bg-stone-900 rounded p-2 text-sm text-stone-300 border border-stone-700 flex justify-between items-center">
-                    <div>
-                        <div class="text-xs text-stone-500 uppercase">Calendar</div>
-                        <div class="font-bold text-white">Month <span id="ui-turn">1</span></div>
+        <div class="field" id="field">
+            <div id="river">
+                <div class="water"></div>
+                <span class="river-label" id="river-label">THE NILE</span>
+            </div>
+            <div class="farm-wrap">
+                <div id="flood-overlay"><div class="water"></div></div>
+                <div id="grid">
+                    <div id="levee-wall"></div>
+                </div>
+                <div id="coach" class="hidden">&#128070; Tap a dry plot to <b>plant seeds</b> (&minus;1 energy).<br>Crops ripen in 4 months &mdash; then tap to harvest!</div>
+            </div>
+            <div id="village"><span class="v-label">Village</span></div>
+        </div>
+        <div id="flash"></div>
+    </main>
+
+    <footer>
+        <!-- Controls -->
+        <div class="panel">
+            <div class="ctl-top">
+                <div class="month-box">
+                    <div class="m-lbl">Calendar</div>
+                    <div class="m-val">Month <span id="ui-turn">1</span></div>
+                </div>
+                <div id="nilometer" class="hidden">
+                    <div class="nilo-col">
+                        <div class="nilo-mark" title="Mark of Plenty"></div>
+                        <div id="nilo-water"></div>
                     </div>
-                    
-                    <div id="flood-tracker" class="text-right hidden">
-                        <div class="text-xs text-stone-500 uppercase">Flood In</div>
-                        <div id="ui-flood-timer" class="text-blue-400 font-bold text-lg">10</div>
-                    </div>
-                    <div id="meso-status" class="hidden text-right">
-                        <div class="text-xs text-stone-500 uppercase">River Status</div>
-                        <div class="text-stone-400 font-bold italic text-sm">Calm</div>
+                    <div class="nilo-info">
+                        <div class="n-lbl">Nilometer</div>
+                        <div id="ui-flood-timer">Flood in 9</div>
                     </div>
                 </div>
-
-                <div class="flex gap-2 h-full">
-                    <!-- LEVEE BUTTONS -->
-                    <div id="levee-controls" class="hidden w-1/3 flex flex-col gap-1">
-                        <!-- Build Button (Shown first) -->
-                        <button id="btn-build-levee" onclick="game.buildLevee()" class="h-full w-full bg-stone-600 hover:bg-stone-500 text-stone-200 font-bold rounded shadow active:scale-95 text-[10px] flex flex-col items-center justify-center border-b-4 border-stone-800">
-                            <i class="fas fa-hammer text-lg mb-1"></i>
-                            <div>Build Levee</div>
-                            <div class="text-amber-400">-3 Energy</div>
-                        </button>
-                        
-                        <!-- Toggle Button (Shown after building) -->
-                        <button id="btn-toggle-levee" onclick="game.toggleLevee()" class="hidden h-full w-full bg-stone-700 hover:bg-stone-600 text-stone-200 font-bold rounded shadow active:scale-95 text-[10px] flex flex-col items-center justify-center border-b-4 border-stone-900">
-                            <div id="levee-state-icon"><i class="fas fa-lock text-lg mb-1 text-red-400"></i></div>
-                            <div id="levee-state-text">CLOSED</div>
-                            <div class="text-[9px] text-stone-400">Click to Open</div>
-                        </button>
-                    </div>
-
-                    <button onclick="game.nextTurn()" class="flex-grow bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 border-b-4 border-blue-800">
-                        <span>Next Month</span> <i class="fas fa-calendar-day"></i>
+                <div id="omen-box" class="hidden">
+                    <div class="n-lbl">Omens</div>
+                    <div id="omen-text">The night is quiet.</div>
+                    <div class="n-lbl" style="margin-top:3px;">River: <span id="meso-status" class="st-calm">Calm</span></div>
+                </div>
+            </div>
+            <div class="ctl-btns">
+                <div id="levee-controls" class="hidden">
+                    <button id="btn-build-levee" class="btn-levee" onclick="game.buildLevee()">
+                        <span class="b-ico">&#128296;</span><span>Build Levee</span><span class="b-cost">&minus;3 Energy</span>
+                    </button>
+                    <button id="btn-toggle-levee" class="btn-levee hidden" onclick="game.toggleLevee()">
+                        <span class="b-ico" id="levee-state-icon">&#128274;</span>
+                        <span id="levee-state-text">CLOSED</span>
+                        <span class="b-cost" style="color:#a8a29e;">tap to switch</span>
                     </button>
                 </div>
+                <button id="btn-next" onclick="game.nextTurn()">
+                    <span>Next Month</span> <span>&#8987;</span>
+                </button>
             </div>
-
-            <!-- CENTER: Log -->
-            <div class="bg-stone-900 rounded p-2 border border-stone-700 text-xs md:text-sm h-32 md:h-auto relative">
-                <div class="text-[10px] text-stone-500 uppercase tracking-widest mb-1 border-b border-stone-700">Scribe's Log</div>
-                <div id="game-log" class="log-container h-24 md:h-20 text-stone-300">
-                    <div class="log-entry log-info">Simulation started.</div>
-                </div>
-            </div>
-
-            <!-- RIGHT: Legend -->
-            <div class="text-xs text-stone-400 flex flex-col justify-center gap-2 pl-4 border-l border-stone-600">
-                <div class="flex items-center gap-2">
-                    <div class="w-4 h-4 bg-[#292524] border border-stone-500"></div> 
-                    <span>Black Soil: <b>3x Food</b></span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <div class="w-4 h-4 bg-[#e5e5e5] border border-stone-500 relative overflow-hidden">
-                       <svg class="absolute inset-0 w-full h-full opacity-30" viewBox="0 0 10 10"><path d="M0 0l10 10m0-10L0 10" stroke="#000" stroke-width="0.5"/></svg>
-                    </div> 
-                    <span>Cracked Mud: <b>1x Food</b></span>
-                </div>
-                <div id="legend-levee" class="hidden flex items-center gap-2 text-stone-500">
-                    <i class="fas fa-lock"></i>
-                    <span>Closed Levee blocks Silt!</span>
-                </div>
-            </div>
-
         </div>
-    </div>
 
-    <script>
-        class Game {
-            constructor() {
-                this.grid = [];
-                this.cols = 5;
-                this.rows = 5;
-                this.mode = null;
-                
-                this.energyMax = 5;
-                this.energy = 5;
-                this.food = 0;
-                this.turn = 1;
+        <!-- Advisor -->
+        <div class="panel advisor">
+            <div class="advisor-head">
+                <span id="advisor-face">&#128116;&#127998;</span>
+                <div>
+                    <div class="p-label">Advisor</div>
+                    <div id="advisor-name">Father</div>
+                </div>
+            </div>
+            <div class="advisor-text" id="advisor-text">...</div>
+        </div>
 
-                this.riverWidth = 0; 
-                this.egyptCycleLength = 16; 
-                this.turnLog = [];
+        <!-- Log -->
+        <div class="panel log">
+            <div class="p-label">Scribe's Log</div>
+            <div id="game-log"></div>
+            <div class="legend">
+                <span><span class="sw sw-silt"></span>Black silt: <b>3&times;</b></span>
+                <span><span class="sw sw-dry"></span>Dry earth: <b>1&times;</b></span>
+                <span id="legend-levee" class="hidden">&#128274; Closed levee = no silt</span>
+            </div>
+        </div>
+    </footer>
+</div>
 
-                // Tech State
-                this.leveeUnlocked = false;
-                this.hasLevee = false;
-                this.leveeOpen = false;
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
 
-                this.ui = {
-                    grid: document.getElementById('grid-container'),
-                    river: document.getElementById('river'),
-                    overlay: document.getElementById('flood-overlay'),
-                    energy: document.getElementById('ui-energy'),
-                    food: document.getElementById('ui-food'),
-                    turn: document.getElementById('ui-turn'),
-                    floodTimer: document.getElementById('ui-flood-timer'),
-                    floodTracker: document.getElementById('flood-tracker'),
-                    mesoStatus: document.getElementById('meso-status'),
-                    title: document.getElementById('region-title'),
-                    log: document.getElementById('game-log'),
-                    leveeControls: document.getElementById('levee-controls'),
-                    btnBuild: document.getElementById('btn-build-levee'),
-                    btnToggle: document.getElementById('btn-toggle-levee'),
-                    leveeStateIcon: document.getElementById('levee-state-icon'),
-                    leveeStateText: document.getElementById('levee-state-text'),
-                    leveeWall: document.getElementById('levee-wall'),
-                    legendLevee: document.getElementById('legend-levee'),
-                    modalTech: document.getElementById('modal-tech')
-                };
+/* ============================= SOUND ENGINE ============================= */
+/* All audio is synthesized — no files, works offline. */
+class Sfx {
+    constructor() {
+        this.ctx = null;
+        this.enabled = localStorage.getItem('rv-sound') !== 'off';
+        this.ambient = null;
+    }
+    ensure() {
+        if (!this.ctx) {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (!AC) { this.enabled = false; return false; }
+            this.ctx = new AC();
+            this.master = this.ctx.createGain();
+            this.master.gain.value = 0.5;
+            this.master.connect(this.ctx.destination);
+        }
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+        return true;
+    }
+    tone(freq, dur, type = 'sine', vol = 0.2, delay = 0, slideTo = null) {
+        if (!this.enabled || !this.ensure()) return;
+        const t = this.ctx.currentTime + delay;
+        const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+        o.type = type; o.frequency.setValueAtTime(freq, t);
+        if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(vol, t + 0.015);
+        g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+        o.connect(g); g.connect(this.master);
+        o.start(t); o.stop(t + dur + 0.05);
+    }
+    noise(dur, vol = 0.3, filterFreq = 800, delay = 0, rampVol = false) {
+        if (!this.enabled || !this.ensure()) return;
+        const t = this.ctx.currentTime + delay;
+        const len = Math.ceil(this.ctx.sampleRate * dur);
+        const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+        const d = buf.getChannelData(0);
+        for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+        const src = this.ctx.createBufferSource(); src.buffer = buf;
+        const f = this.ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = filterFreq;
+        const g = this.ctx.createGain();
+        if (rampVol) {
+            g.gain.setValueAtTime(0.001, t);
+            g.gain.exponentialRampToValueAtTime(vol, t + dur * 0.4);
+            g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+        } else {
+            g.gain.setValueAtTime(vol, t);
+            g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+        }
+        src.connect(f); f.connect(g); g.connect(this.master);
+        src.start(t); src.stop(t + dur);
+    }
+    plant()   { this.tone(196, 0.09, 'triangle', 0.22); this.tone(147, 0.12, 'sine', 0.15, 0.02); }
+    harvest() { [523, 659, 784].forEach((f, i) => this.tone(f, 0.22, 'triangle', 0.16, i * 0.07)); }
+    bigHarvest() { [523, 659, 784, 1047].forEach((f, i) => this.tone(f, 0.3, 'triangle', 0.18, i * 0.08)); }
+    turn()    { this.tone(330, 0.08, 'sine', 0.1); this.tone(440, 0.1, 'sine', 0.08, 0.06); }
+    flood()   { this.noise(1.6, 0.32, 500, 0, true); this.tone(70, 1.4, 'sine', 0.15, 0, 50); }
+    flash()   { this.noise(0.25, 0.5, 3500); this.noise(1.8, 0.4, 400, 0.1, true); this.tone(55, 1.6, 'sawtooth', 0.12, 0.1, 40); }
+    recede()  { this.noise(1.0, 0.12, 900, 0, true); this.tone(220, 0.5, 'sine', 0.06, 0.2, 330); }
+    build()   { [0, 0.12, 0.24].forEach(d => this.noise(0.08, 0.3, 1800, d)); this.tone(110, 0.3, 'square', 0.08, 0.3); }
+    crash()   { this.noise(0.9, 0.5, 700); this.tone(60, 0.9, 'sawtooth', 0.2, 0, 35); }
+    tech()    { [392, 494, 587, 784].forEach((f, i) => this.tone(f, 0.4, 'sine', 0.15, i * 0.12)); }
+    deny()    { this.tone(140, 0.15, 'square', 0.12); this.tone(110, 0.2, 'square', 0.1, 0.1); }
+    scroll()  { this.noise(0.35, 0.12, 1600); this.tone(660, 0.3, 'sine', 0.08, 0.1, 880); }
+    setEnabled(on) {
+        this.enabled = on;
+        localStorage.setItem('rv-sound', on ? 'on' : 'off');
+        if (!on && this.ctx) this.ctx.suspend();
+        else if (on && this.ctx) this.ctx.resume();
+    }
+}
+
+/* ============================= FLAVOR TEXT ============================= */
+const SEASONS_EGYPT = [
+    // Indexed by cycle month 1..16 (Egyptian agricultural seasons)
+    null,
+    'Peret — Growing season', 'Peret — Growing season', 'Peret — Growing season',
+    'Shemu — Harvest season', 'Shemu — Harvest season', 'Shemu — Harvest season',
+    'Shemu — Dry heat', 'Shemu — Dry heat', 'Shemu — The land waits',
+    'Akhet — The Inundation', 'Akhet — The Inundation', 'Akhet — The Inundation',
+    'Akhet — The Inundation', 'Akhet — Waters recede', 'Akhet — Waters recede',
+    'Peret — Black earth emerges'
+];
+const OMENS_STORM = [
+    '⚡ A low rumble echoes from the northern mountains…',
+    'The dogs will not stop barking at the river tonight…',
+    'Shepherds whisper that the mountain snow is melting fast…',
+    'The water has turned brown and restless…',
+    'Birds are fleeing the riverbank in great flocks…'
+];
+const OMENS_CALM = [
+    'The night is quiet. The river sleeps.',
+    'A warm wind crosses the plain. Nothing stirs.',
+    'The water runs slow and clear today.',
+    'Fishermen doze in their boats. All seems still.',
+    'The priests read the sheep’s liver: no sign of anger.'
+];
+const ADVISOR = {
+    egypt: {
+        face: '\u{1F474}\u{1F3FE}', name: 'Your Father',
+        start: '“The river is not attacking us; it is breathing. Watch the Nilometer, plant after the flood, and the black mud will feed us. Trust the cycle, Menes.”',
+        preFlood: '“The water nears the Mark of Plenty. The flood comes exactly when the calendar promised. Harvest what is ripe — let the river take the rest.”',
+        flooding: '“Do not fear. It does this every year, on this exact week. In a few months it will breathe out again.”',
+        firstSilt: '“Look — the black gift! Plant in that dark mud, son. It will pay us back three times over.”',
+        goodHarvest: '“Ma’at — balance — is the law of the universe. Do your work, follow the calendar, and you will always be fed.”',
+        cropsLost: '“You planted too close to the flood, Menes. The calendar told you it was coming. Learn from the river’s rhythm.”'
+    },
+    meso: {
+        face: '\u{1F469}\u{1F3FD}‍\u{1F9B1}', name: 'Your Mother',
+        start: '“Never trust the quiet, Enki. The river is a sleeping dragon. There is no calendar here — plant fast, harvest faster, and always be ready to run.”',
+        flash: '“Grab the sacks! I told you — the river does not care about your harvest! Never trust the quiet!”',
+        falseAlarm: '“The omens lied again. Or perhaps the gods changed their minds. Who can say? Stay watchful.”',
+        cropsLost: '“The gods flood the world for no reason at all. Do not look for fairness, Enki. Look for higher ground.”',
+        tech: '“If the gods will not protect our fields, we will do it ourselves. Sweat is more reliable than prayer.”',
+        leveeHeld: '“The wall held! You see? Our own two hands did what no offering ever could.”',
+        leveeBroke: '“The river laughs at our little wall… Then we build it again. And again. That is who we are.”',
+        goodHarvest: '“A full granary… for now. Enjoy it tonight; guard it tomorrow.”'
+    }
+};
+
+/* ============================= GAME ============================= */
+class Game {
+    constructor(sfx) {
+        this.sfx = sfx;
+        this.grid = [];
+        this.cols = 5;
+        this.rows = 5;
+        this.mode = null;
+
+        this.energyMax = 5;
+        this.energy = 5;
+        this.food = 0;
+        this.turn = 1;
+        this.mood = 55;
+
+        this.riverWidth = 0;
+        this.egyptCycleLength = 16;
+        this.plantedThisTurn = 0;
+        this.harvestsThisTurn = 0;
+
+        this.leveeUnlocked = false;
+        this.hasLevee = false;
+        this.leveeOpen = false;
+
+        this.pendingMeso = null;      // pre-rolled next-month river state (fuels the omens)
+        this.saidFirstSilt = false;
+        this.censusShown = {};
+        this.coachDismissed = false;
+
+        this.ui = {
+            grid: $('grid'), river: $('river'), overlay: $('flood-overlay'),
+            energy: $('ui-energy'), food: $('ui-food'), turn: $('ui-turn'),
+            floodTimer: $('ui-flood-timer'), niloWater: $('nilo-water'),
+            nilometer: $('nilometer'), omenBox: $('omen-box'), omenText: $('omen-text'),
+            mesoStatus: $('meso-status'), title: $('region-title'), season: $('season-chip'),
+            log: $('game-log'), leveeControls: $('levee-controls'),
+            btnBuild: $('btn-build-levee'), btnToggle: $('btn-toggle-levee'),
+            leveeStateIcon: $('levee-state-icon'), leveeStateText: $('levee-state-text'),
+            leveeWall: $('levee-wall'), legendLevee: $('legend-levee'),
+            modalTech: $('modal-tech'), modalCensus: $('modal-census'),
+            censusTitle: $('census-title'), censusSub: $('census-sub'),
+            censusFood: $('census-food'), censusNote: $('census-note'),
+            advisorFace: $('advisor-face'), advisorName: $('advisor-name'), advisorText: $('advisor-text'),
+            moodFace: $('mood-face'), moodWord: $('mood-word'),
+            village: $('village'), sun: $('sun'), scene: $('scene'), field: $('field'),
+            flash: $('flash'), stormCloud: $('storm-cloud'), coach: $('coach'),
+            riverLabel: $('river-label'), btnSound: $('btn-sound')
+        };
+    }
+
+    init(mode) {
+        this.mode = mode;
+        $('modal-start').classList.add('hidden');
+        $('game-ui').classList.remove('hidden');
+        document.body.classList.remove('civ-egypt', 'civ-meso');
+        document.body.classList.add(mode === 'egypt' ? 'civ-egypt' : 'civ-meso');
+
+        this.hasLevee = false;
+        this.leveeUnlocked = false;
+        this.leveeOpen = false;
+        this.ui.leveeWall.className = '';
+        this.ui.leveeWall.id = 'levee-wall';
+        this.mood = mode === 'egypt' ? 62 : 48;
+
+        const adv = ADVISOR[this.mode];
+        this.ui.advisorFace.textContent = adv.face;
+        this.ui.advisorName.textContent = adv.name;
+
+        if (mode === 'egypt') {
+            this.ui.title.textContent = 'Ancient Egypt';
+            this.ui.riverLabel.textContent = 'THE NILE';
+            this.ui.nilometer.classList.remove('hidden');
+            this.ui.omenBox.classList.add('hidden');
+            this.ui.leveeControls.classList.add('hidden');
+            this.ui.legendLevee.classList.add('hidden');
+            $('horizon-egypt').classList.remove('hidden');
+            $('horizon-meso').classList.add('hidden');
+        } else {
+            this.ui.title.textContent = 'Mesopotamia';
+            this.ui.riverLabel.textContent = 'THE TIGRIS';
+            this.ui.nilometer.classList.add('hidden');
+            this.ui.omenBox.classList.remove('hidden');
+            this.ui.leveeControls.classList.add('hidden');
+            this.ui.legendLevee.classList.remove('hidden');
+            $('horizon-egypt').classList.add('hidden');
+            $('horizon-meso').classList.remove('hidden');
+            this.pendingMeso = this.rollMesoRiver(0);
+            this.showOmen();
+        }
+
+        this.ui.season.textContent = mode === 'egypt' ? SEASONS_EGYPT[1] : 'The plain between two rivers';
+        this.ui.floodTimer.textContent = 'Flood in 9';
+        this.ui.floodTimer.classList.remove('danger');
+        this.ui.mesoStatus.textContent = 'Calm';
+        this.ui.mesoStatus.className = 'st-calm';
+
+        this.ui.log.innerHTML = '';
+        this.log(this.mode === 'egypt' ? 'You settle beside the Nile.' : 'You settle beside the Tigris.', 'info');
+        this.say(adv.start);
+        this.buildGrid();
+        this.updateRiverVisuals();
+        this.updateSky();
+        this.updateNilometer();
+        this.renderVillage();
+        this.renderMood();
+        this.updateUI();
+        this.renderEnergy();
+
+        if (!this.coachDismissed) this.ui.coach.classList.remove('hidden');
+    }
+
+    /* ---------- Presentation helpers ---------- */
+    log(msg, type = 'info') {
+        const div = document.createElement('div');
+        div.textContent = `[M${this.turn}] ${msg}`;
+        div.className = `log-entry log-${type}`;
+        this.ui.log.prepend(div);
+        while (this.ui.log.children.length > 40) this.ui.log.lastChild.remove();
+    }
+
+    say(text) {
+        const el = this.ui.advisorText;
+        el.style.animation = 'none';
+        void el.offsetWidth; // restart the fade-in
+        el.style.animation = '';
+        el.textContent = text;
+    }
+
+    bumpMood(delta) { this.mood = Math.max(5, Math.min(95, this.mood + delta)); }
+
+    renderMood() {
+        let face, word;
+        if (this.mood >= 70) {
+            face = '\u{1F60C}';
+            word = this.mode === 'egypt' ? 'At Peace — Ma’at' : 'Hopeful';
+        } else if (this.mood >= 40) {
+            face = '\u{1F610}'; word = 'Watchful';
+        } else {
+            face = '\u{1F628}';
+            word = this.mode === 'meso' ? 'Fearful — the gods are angry' : 'Fearful';
+        }
+        this.ui.moodFace.textContent = face;
+        this.ui.moodWord.textContent = word;
+        $('mood-chip').title = this.mode === 'egypt'
+            ? 'Your people believe the universe is orderly. Predictable floods keep them calm.'
+            : 'Your people fear the gods. Every surprise flood deepens their anxiety.';
+    }
+
+    renderVillage() {
+        const v = this.ui.village;
+        v.querySelectorAll('.hut').forEach(h => h.remove());
+        const hutCount = Math.min(7, 2 + Math.floor(this.food / 15));
+        for (let i = 0; i < hutCount; i++) {
+            const h = document.createElement('div');
+            h.className = 'hut';
+            h.textContent = '\u{1F6D6}';
+            v.appendChild(h);
+        }
+    }
+
+    updateSky() {
+        // Sun drifts across the sky through the year
+        const phase = this.mode === 'egypt'
+            ? ((this.turn - 1) % this.egyptCycleLength) / this.egyptCycleLength
+            : ((this.turn - 1) % 12) / 12;
+        this.ui.sun.style.left = (8 + phase * 78) + '%';
+        // Storm cloud during high water in Mesopotamia
+        if (this.mode === 'meso' && this.riverWidth >= 3) this.ui.stormCloud.classList.remove('hidden');
+        else this.ui.stormCloud.classList.add('hidden');
+    }
+
+    updateNilometer() {
+        if (this.mode !== 'egypt') return;
+        const cycle = (this.turn - 1) % this.egyptCycleLength + 1;
+        let pct;
+        if (cycle <= 9) pct = 8 + (cycle / 9) * 42;           // slowly creeping up toward the mark
+        else if (cycle === 10) pct = 62;
+        else if (cycle === 11) pct = 80;
+        else if (cycle <= 13) pct = 96;                        // at the Mark of Plenty
+        else if (cycle === 14) pct = 72;
+        else if (cycle === 15) pct = 45;
+        else pct = 14;
+        this.ui.niloWater.style.height = pct + '%';
+    }
+
+    spawnFloater(targetEl, text, colorClass) {
+        const el = document.createElement('div');
+        el.textContent = text;
+        el.className = `floater ${colorClass}`;
+        const rect = targetEl.getBoundingClientRect();
+        el.style.left = (rect.left + rect.width * 0.25) + 'px';
+        el.style.top = (rect.top + rect.height * 0.2) + 'px';
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 1500);
+    }
+
+    shakeScreen() {
+        this.ui.scene.classList.remove('shake');
+        void this.ui.scene.offsetWidth;
+        this.ui.scene.classList.add('shake');
+    }
+
+    lightning() {
+        this.ui.flash.classList.remove('zap');
+        void this.ui.flash.offsetWidth;
+        this.ui.flash.classList.add('zap');
+    }
+
+    /* ---------- Grid ---------- */
+    buildGrid() {
+        this.ui.grid.innerHTML = '';
+        this.ui.grid.appendChild(this.ui.leveeWall);
+        this.riverWidth = 0;
+
+        this.grid = [];
+        for (let r = 0; r < this.rows; r++) {
+            for (let c = 0; c < this.cols; c++) {
+                const cellData = { row: r, col: c, soil: 'dry', crop: 0, siltLife: 0, el: null };
+                const el = document.createElement('div');
+                el.className = 'cell soil-dry';
+                el.onclick = () => this.clickCell(cellData);
+                cellData.el = el;
+                this.grid.push(cellData);
+                this.ui.grid.appendChild(el);
             }
+        }
+    }
 
-            init(mode) {
-                this.mode = mode;
-                document.getElementById('modal-start').classList.add('hidden');
-                document.getElementById('game-ui').classList.remove('hidden');
-                
-                // Reset State
-                this.hasLevee = false;
-                this.leveeUnlocked = false;
-                this.leveeOpen = false;
-                this.ui.leveeWall.classList.remove('levee-built', 'levee-broken', 'levee-open');
+    clickCell(cell) {
+        if (cell.soil === 'flooded') {
+            this.spawnFloater(cell.el, '\u{1F30A} Underwater!', 'f-blue');
+            return;
+        }
 
-                if (mode === 'egypt') {
-                    this.ui.title.innerText = "Ancient Egypt (Nile)";
-                    this.ui.title.className = "text-lg md:text-2xl cinzel font-bold text-amber-500";
-                    this.ui.mesoStatus.classList.add('hidden');
-                    this.ui.floodTracker.classList.remove('hidden');
-                    this.ui.leveeControls.classList.add('hidden');
-                    this.ui.legendLevee.classList.add('hidden');
+        // Harvest
+        if (cell.crop === 5) {
+            const yieldAmt = cell.soil === 'silt' ? 3 : 1;
+            this.food += yieldAmt;
+            this.harvestsThisTurn++;
+            this.bumpMood(1);
+            this.spawnFloater(cell.el, `+${yieldAmt} \u{1F33E}`, 'f-gold');
+            yieldAmt >= 3 ? this.sfx.bigHarvest() : this.sfx.harvest();
+            cell.crop = 0;
+            this.log(`Harvested ${yieldAmt} food ${yieldAmt >= 3 ? 'from rich black silt!' : 'from dry earth.'}`, 'good');
+            if (this.harvestsThisTurn === 4) this.say(ADVISOR[this.mode].goodHarvest);
+            this.renderCell(cell);
+            this.renderVillage();
+            this.renderMood();
+            this.updateUI();
+            return;
+        }
+
+        // Plant
+        if (cell.crop === 0 && this.energy > 0) {
+            this.energy--;
+            cell.crop = 1;
+            this.plantedThisTurn++;
+            this.sfx.plant();
+            this.spawnFloater(cell.el, '⚡−1', 'f-white');
+            this.renderCell(cell);
+            this.renderEnergy();
+            if (!this.coachDismissed) {
+                this.coachDismissed = true;
+                this.ui.coach.classList.add('hidden');
+            }
+        } else if (cell.crop === 0 && this.energy === 0) {
+            this.sfx.deny();
+            this.spawnFloater(cell.el, 'No energy!', 'f-red');
+            this.log('Out of energy. End the month to rest.', 'bad');
+        }
+    }
+
+    renderCell(cell) {
+        let cls = 'cell ';
+        if (cell.soil === 'flooded') cls += 'soil-flooded';
+        else if (cell.soil === 'silt') cls += 'soil-silt' + (cell.fresh ? ' fresh' : '');
+        else cls += 'soil-dry';
+        if (cell.crop === 5 && cell.soil !== 'flooded') cls += ' harvest-ready';
+        cell.el.className = cls;
+        cell.el.innerHTML = '';
+        cell.fresh = false;
+
+        if (cell.crop > 0 && cell.soil !== 'flooded') {
+            const span = document.createElement('span');
+            span.className = 'crop' + (cell.crop === 5 ? ' ripe' : '');
+            if (cell.crop <= 2) { span.textContent = '\u{1F331}'; span.style.fontSize = (13 + cell.crop * 3) + 'px'; }
+            else if (cell.crop <= 4) { span.textContent = '\u{1F33F}'; span.style.fontSize = (18 + cell.crop * 2) + 'px'; }
+            else { span.textContent = '\u{1F33E}'; span.style.fontSize = '28px'; }
+            cell.el.appendChild(span);
+        }
+    }
+
+    /* ---------- Levee ---------- */
+    checkEvents() {
+        if (this.mode === 'meso' && this.turn === 20 && !this.leveeUnlocked) {
+            this.leveeUnlocked = true;
+            this.showCensus(20, true);   // census first; tech modal follows on Continue
+            this.ui.leveeControls.classList.remove('hidden');
+            this.ui.btnBuild.classList.remove('hidden');
+            this.ui.btnToggle.classList.add('hidden');
+            this.log('Technology discovered: Levees!', 'tech');
+        } else if (this.turn === 20 || this.turn === 40) {
+            this.showCensus(this.turn, false);
+        }
+    }
+
+    buildLevee() {
+        if (this.energy < 3) {
+            this.sfx.deny();
+            this.log('Need 3 energy to build the levee.', 'bad');
+            return;
+        }
+        this.energy -= 3;
+        this.hasLevee = true;
+        this.leveeOpen = false;
+        this.sfx.build();
+
+        this.ui.leveeWall.classList.add('built');
+        this.ui.leveeWall.classList.remove('broken', 'open');
+        this.ui.btnBuild.classList.add('hidden');
+        this.ui.btnToggle.classList.remove('hidden');
+        this.updateLeveeButton();
+
+        this.log('Levee constructed along the riverbank.', 'good');
+        this.say(ADVISOR.meso.tech);
+        this.renderEnergy();
+    }
+
+    toggleLevee() {
+        this.leveeOpen = !this.leveeOpen;
+        this.sfx.turn();
+        if (this.leveeOpen) {
+            this.ui.leveeWall.classList.add('open');
+            this.log('Gates OPENED. The river may enter and leave its silt.', 'warn');
+        } else {
+            this.ui.leveeWall.classList.remove('open');
+            this.log('Gates CLOSED. The fields are walled off.', 'info');
+        }
+        this.updateLeveeButton();
+    }
+
+    updateLeveeButton() {
+        this.ui.leveeStateIcon.textContent = this.leveeOpen ? '\u{1F513}' : '\u{1F512}';
+        this.ui.leveeStateText.textContent = this.leveeOpen ? 'OPEN' : 'CLOSED';
+    }
+
+    /* ---------- Turn ---------- */
+    nextTurn() {
+        if (this.plantedThisTurn > 0) this.log(`Planted ${this.plantedThisTurn} plot${this.plantedThisTurn > 1 ? 's' : ''}.`, 'info');
+        this.plantedThisTurn = 0;
+        this.harvestsThisTurn = 0;
+
+        this.turn++;
+        this.energy = this.energyMax;
+        this.sfx.turn();
+        if (!this.coachDismissed) { this.coachDismissed = true; this.ui.coach.classList.add('hidden'); }
+
+        this.checkEvents();
+
+        // 1. Raw river state
+        let rawWidth, mesoEvent = null;
+        if (this.mode === 'egypt') {
+            rawWidth = this.calculateEgyptRiver();
+        } else {
+            mesoEvent = this.pendingMeso;
+            rawWidth = mesoEvent.w;
+            this.showMesoStatus(mesoEvent);
+        }
+
+        // 2. Levee defense
+        let actualWidth = rawWidth;
+        if (this.hasLevee && rawWidth > 0) {
+            if (!this.leveeOpen) {
+                if (rawWidth <= 2) {
+                    actualWidth = 0;
+                    this.bumpMood(12);
+                    this.sfx.build();
+                    this.log('The levee held back the water!', 'good');
+                    this.say(ADVISOR.meso.leveeHeld);
                 } else {
-                    this.ui.title.innerText = "Mesopotamia (Tigris)";
-                    this.ui.title.className = "text-lg md:text-2xl cinzel font-bold text-red-500";
-                    this.ui.mesoStatus.classList.remove('hidden');
-                    this.ui.floodTracker.classList.add('hidden');
-                    // Levee hidden until turn 20
-                    this.ui.leveeControls.classList.add('hidden');
-                    this.ui.legendLevee.classList.remove('hidden');
-                }
-                
-                this.ui.log.innerHTML = '<div class="log-entry log-info">Simulation started.</div>';
-                this.buildGrid();
-                this.updateUI();
-                this.renderEnergy();
-            }
-
-            log(msg, type='info') {
-                const div = document.createElement('div');
-                div.innerText = `[M${this.turn}] ${msg}`;
-                div.className = `log-entry log-${type}`;
-                this.ui.log.prepend(div);
-            }
-
-            buildGrid() {
-                this.ui.grid.innerHTML = '';
-                this.ui.grid.appendChild(this.ui.leveeWall); 
-
-                this.grid = [];
-                for(let r=0; r<this.rows; r++) {
-                    for(let c=0; c<this.cols; c++) {
-                        const cellData = {
-                            id: `${r}-${c}`,
-                            row: r,
-                            col: c,
-                            soil: 'dry', 
-                            crop: 0, 
-                            siltLife: 0,
-                            el: null
-                        };
-
-                        const el = document.createElement('div');
-                        el.className = 'cell pattern-cracked flex items-center justify-center text-2xl relative border border-stone-400/30';
-                        el.onclick = () => this.clickCell(cellData);
-                        
-                        cellData.el = el;
-                        this.grid.push(cellData);
-                        this.ui.grid.appendChild(el);
-                    }
-                }
-            }
-
-            clickCell(cell) {
-                if (cell.soil === 'flooded') return;
-                
-                // Harvest
-                if (cell.crop === 5) {
-                    const yieldAmt = cell.soil === 'silt' ? 3 : 1;
-                    this.food += yieldAmt;
-                    this.spawnFloater(cell.el, `+${yieldAmt} Food`, 'text-yellow-400');
-                    cell.crop = 0;
-                    this.log(`Harvested ${yieldAmt} food from plot.`, 'good');
-                    this.renderCell(cell);
-                    this.updateUI();
-                    return;
-                }
-
-                // Plant
-                if (cell.crop === 0 && this.energy > 0) {
-                    this.energy--;
-                    cell.crop = 1;
-                    this.spawnFloater(cell.el, "-1 Energy", "text-white");
-                    this.renderCell(cell);
-                    this.renderEnergy();
-                    this.turnLog.push('planted'); 
-                } else if (cell.crop === 0 && this.energy === 0) {
-                    this.shakeUI(this.ui.energy);
-                    this.log("Out of energy.", "bad");
-                }
-            }
-
-            // --- LEVEE LOGIC ---
-
-            checkEvents() {
-                // Trigger Tech Unlock at Turn 20 for Meso
-                if (this.mode === 'meso' && this.turn === 20 && !this.leveeUnlocked) {
-                    this.leveeUnlocked = true;
-                    this.ui.modalTech.classList.remove('hidden');
-                    this.ui.leveeControls.classList.remove('hidden');
+                    this.hasLevee = false;
+                    this.leveeOpen = false;
+                    this.sfx.crash();
+                    this.shakeScreen();
+                    this.bumpMood(-25);
+                    this.ui.leveeWall.classList.remove('built', 'open');
+                    this.ui.leveeWall.classList.add('broken');
                     this.ui.btnBuild.classList.remove('hidden');
                     this.ui.btnToggle.classList.add('hidden');
-                    this.log("Technology discovered: Levees", "tech");
+                    this.log('THE FLOOD IS TOO STRONG! The levee collapses!', 'bad');
+                    this.say(ADVISOR.meso.leveeBroke);
                 }
-            }
-
-            buildLevee() {
-                if (this.energy < 3) {
-                    this.log("Need 3 Energy to build.", "bad");
-                    this.shakeUI(this.ui.energy);
-                    return;
-                }
-                
-                this.energy -= 3;
-                this.hasLevee = true;
-                this.leveeOpen = false; // Built closed by default
-                
-                this.ui.leveeWall.classList.add('levee-built');
-                this.ui.leveeWall.classList.remove('levee-broken', 'levee-open');
-                
-                // Switch Buttons
-                this.ui.btnBuild.classList.add('hidden');
-                this.ui.btnToggle.classList.remove('hidden');
-                this.updateLeveeButton();
-
-                this.log("Levee constructed.", "good");
-                this.renderEnergy();
-            }
-
-            toggleLevee() {
-                this.leveeOpen = !this.leveeOpen;
-                if (this.leveeOpen) {
-                    this.ui.leveeWall.classList.add('levee-open');
-                    this.log("Gates OPENED. Water can flow.", "warn");
-                } else {
-                    this.ui.leveeWall.classList.remove('levee-open');
-                    this.log("Gates CLOSED. Water blocked.", "info");
-                }
-                this.updateLeveeButton();
-            }
-
-            updateLeveeButton() {
-                if (this.leveeOpen) {
-                    this.ui.leveeStateIcon.innerHTML = '<i class="fas fa-lock-open text-lg mb-1 text-green-400"></i>';
-                    this.ui.leveeStateText.innerText = "OPEN";
-                } else {
-                    this.ui.leveeStateIcon.innerHTML = '<i class="fas fa-lock text-lg mb-1 text-red-400"></i>';
-                    this.ui.leveeStateText.innerText = "CLOSED";
-                }
-            }
-
-            // --- TURN LOGIC ---
-
-            nextTurn() {
-                const plantedCount = this.turnLog.filter(x => x === 'planted').length;
-                if(plantedCount > 0) this.log(`Planted ${plantedCount} new crops.`, 'info');
-                this.turnLog = [];
-
-                this.turn++;
-                this.energy = this.energyMax;
-
-                // Check for Tech Unlock
-                this.checkEvents();
-                
-                // 1. Calculate Raw River State
-                let rawWidth = 0;
-                if (this.mode === 'egypt') {
-                    rawWidth = this.calculateEgyptRiver();
-                } else {
-                    rawWidth = this.calculateMesoRiver();
-                }
-
-                // 2. Apply Levee Defense
-                let actualWidth = rawWidth;
-
-                if (this.hasLevee && rawWidth > 0) {
-                    if (this.leveeOpen) {
-                        // Open: Water flows, but levee survives
-                        actualWidth = rawWidth;
-                        // Visual effect handled by CSS opacity
-                    } else {
-                        // Closed: Blocks small floods
-                        if (rawWidth <= 2) {
-                            actualWidth = 0; // Blocked!
-                            this.log("Levee held back the water.", "good");
-                        } else if (rawWidth >= 3) {
-                            // Breached!
-                            actualWidth = rawWidth;
-                            this.hasLevee = false;
-                            this.leveeOpen = false;
-                            
-                            this.ui.leveeWall.classList.remove('levee-built', 'levee-open');
-                            this.ui.leveeWall.classList.add('levee-broken');
-                            
-                            // Reset buttons
-                            this.ui.btnBuild.classList.remove('hidden');
-                            this.ui.btnToggle.classList.add('hidden');
-                            
-                            this.log("FLOOD TOO STRONG! Levee collapsed!", "bad");
-                        }
-                    }
-                }
-
-                this.riverWidth = actualWidth;
-                this.updateRiverVisuals();
-
-                // 3. Grid Logic
-                let destroyedCount = 0;
-                this.grid.forEach(cell => {
-                    if (cell.col < this.riverWidth) {
-                        if (cell.crop > 0) {
-                            destroyedCount++;
-                            cell.crop = 0; 
-                        }
-                        cell.soil = 'flooded';
-                        cell.siltLife = 6; 
-                    } else {
-                        if (cell.soil === 'flooded') {
-                            cell.soil = 'silt'; 
-                        } else if (cell.soil === 'silt') {
-                            cell.siltLife--;
-                            if (cell.siltLife <= 0) cell.soil = 'dry';
-                        }
-                    }
-
-                    if (cell.crop > 0 && cell.crop < 5 && cell.soil !== 'flooded') {
-                        cell.crop++;
-                    }
-                    this.renderCell(cell);
-                });
-
-                if(destroyedCount > 0) this.log(`Flood destroyed ${destroyedCount} crops!`, 'bad');
-
-                this.updateUI();
-                this.renderEnergy();
-            }
-
-            calculateEgyptRiver() {
-                const cycle = (this.turn - 1) % this.egyptCycleLength + 1;
-                let targetWidth = 0;
-                let msg = "";
-
-                if (cycle <= 9) {
-                    targetWidth = 0;
-                    msg = 10 - cycle;
-                    this.ui.floodTimer.className = "text-blue-400 font-bold text-lg";
-                } 
-                else if (cycle === 10) { targetWidth = 1; msg = "RISING"; }
-                else if (cycle === 11) { targetWidth = 3; msg = "FLOODING"; }
-                else if (cycle === 12) { targetWidth = 5; msg = "PEAK"; }
-                else if (cycle === 13) { targetWidth = 5; msg = "PEAK"; }
-                else if (cycle === 14) { targetWidth = 3; msg = "RECEDING"; }
-                else if (cycle === 15) { targetWidth = 1; msg = "RECEDING"; }
-                else { targetWidth = 0; msg = "SAFE"; }
-
-                if(cycle >= 8 && cycle <= 9) this.ui.floodTimer.className = "text-red-500 font-bold text-lg animate-ping";
-                this.ui.floodTimer.innerText = msg;
-                return targetWidth;
-            }
-
-            calculateMesoRiver() {
-                const r = Math.random();
-                let status = "";
-                let color = "text-stone-400";
-                let newWidth = this.riverWidth; 
-
-                if (this.riverWidth === 0) {
-                    if (r < 0.15) { newWidth = 1; status = "Rising..."; color = "text-orange-400"; }
-                    else if (r < 0.20) { newWidth = 4; status = "FLASH FLOOD!"; color = "text-red-600 animate-pulse"; this.log("FLASH FLOOD!", "bad"); } 
-                    else { status = "Calm"; }
-                } else {
-                    if (r < 0.3) { newWidth = Math.min(5, this.riverWidth + 1); status = "Rising!"; color = "text-red-500"; }
-                    else if (r < 0.7) { newWidth = Math.max(0, this.riverWidth - 1); status = "Receding"; color = "text-blue-400"; }
-                    else { status = "Holding..."; }
-                }
-
-                this.ui.mesoStatus.innerHTML = `<div class="${color}">${status}</div>`;
-                return newWidth;
-            }
-
-            renderCell(cell) {
-                let bgClass = 'pattern-cracked';
-                if (cell.soil === 'silt') bgClass = 'pattern-silt';
-                if (cell.soil === 'flooded') bgClass = 'soil-flooded';
-
-                let borderClass = 'border border-stone-400/30';
-                if (cell.crop === 5 && cell.soil !== 'flooded') {
-                    bgClass += ' harvest-ready';
-                }
-
-                cell.el.className = `cell ${bgClass} flex items-center justify-center relative ${borderClass}`;
-                cell.el.innerHTML = '';
-
-                if (cell.crop > 0 && cell.soil !== 'flooded') {
-                    const icon = document.createElement('i');
-                    if (cell.crop < 5) {
-                        icon.className = `fas fa-seedling text-green-${Math.min(900, 400 + (cell.crop*100))} plant`;
-                        icon.style.transform = `scale(${0.5 + (cell.crop * 0.1)})`;
-                    } else {
-                        icon.className = 'fas fa-wheat text-yellow-400 text-3xl animate-bounce drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]';
-                    }
-                    cell.el.appendChild(icon);
-                }
-            }
-
-            updateRiverVisuals() {
-                const gridWidth = this.ui.grid.offsetWidth;
-                const colWidth = gridWidth / this.cols;
-                const targetPx = this.riverWidth * colWidth;
-                
-                this.ui.overlay.style.width = `${targetPx}px`;
-                this.ui.river.style.width = this.riverWidth > 0 ? `${50 + (colWidth/2)}px` : '50px';
-            }
-
-            updateUI() {
-                this.ui.food.innerText = this.food;
-                this.ui.turn.innerText = this.turn;
-            }
-
-            renderEnergy() {
-                this.ui.energy.innerHTML = '';
-                for(let i=0; i<this.energyMax; i++) {
-                    const pip = document.createElement('div');
-                    pip.className = `energy-pip ${i >= this.energy ? 'spent' : ''}`;
-                    this.ui.energy.appendChild(pip);
-                }
-            }
-
-            spawnFloater(targetEl, text, colorClass) {
-                const el = document.createElement('div');
-                el.innerText = text;
-                el.className = `floater ${colorClass} absolute z-50 text-xl pointer-events-none`;
-                const rect = targetEl.getBoundingClientRect();
-                el.style.left = (rect.left + 20) + 'px';
-                el.style.top = (rect.top) + 'px';
-                document.body.appendChild(el);
-                setTimeout(() => el.remove(), 1500);
-            }
-
-            shakeUI(el) {
-                el.style.transform = "translateX(5px)";
-                setTimeout(() => el.style.transform = "translateX(-5px)", 50);
-                setTimeout(() => el.style.transform = "translateX(5px)", 100);
-                setTimeout(() => el.style.transform = "none", 150);
             }
         }
 
-        function startGame(mode) {
-            window.game = new Game();
-            window.game.init(mode);
+        const prevWidth = this.riverWidth;
+        this.riverWidth = actualWidth;
+
+        // River sound & effects
+        if (mesoEvent && mesoEvent.ev === 'flash' && actualWidth > prevWidth) {
+            this.sfx.flash();
+            this.lightning();
+            this.shakeScreen();
+            this.bumpMood(-10);
+            this.say(ADVISOR.meso.flash);
+        } else if (actualWidth > prevWidth) {
+            this.sfx.flood();
+        } else if (actualWidth < prevWidth) {
+            this.sfx.recede();
         }
 
-        function closeTechModal() {
-            document.getElementById('modal-tech').classList.add('hidden');
+        this.updateRiverVisuals();
+        this.updateSky();
+        this.updateNilometer();
+
+        // 3. Grid update
+        let destroyed = 0, newSilt = 0;
+        this.grid.forEach(cell => {
+            if (cell.col < this.riverWidth) {
+                if (cell.crop > 0) { destroyed++; cell.crop = 0; }
+                cell.soil = 'flooded';
+                cell.siltLife = 6;
+            } else {
+                if (cell.soil === 'flooded') {
+                    cell.soil = 'silt';
+                    cell.fresh = true;
+                    newSilt++;
+                } else if (cell.soil === 'silt') {
+                    cell.siltLife--;
+                    if (cell.siltLife <= 0) cell.soil = 'dry';
+                }
+            }
+            if (cell.crop > 0 && cell.crop < 5 && cell.soil !== 'flooded') cell.crop++;
+            this.renderCell(cell);
+        });
+
+        if (destroyed > 0) {
+            this.bumpMood(-Math.min(24, destroyed * 6));
+            this.log(`The flood destroyed ${destroyed} crop${destroyed > 1 ? 's' : ''}!`, 'bad');
+            this.say(ADVISOR[this.mode].cropsLost);
+        } else if (this.riverWidth === 0) {
+            this.bumpMood(this.mode === 'egypt' ? 3 : 2);
         }
 
-        function exitToMenu() {
-            document.getElementById('game-ui').classList.add('hidden');
-            document.getElementById('modal-start').classList.remove('hidden');
-            document.body.className = "bg-stone-900 text-stone-100 flex flex-col items-center min-h-screen"; 
+        if (newSilt > 0) {
+            this.log(`The water recedes, leaving ${newSilt} plots of rich black silt.`, 'good');
+            if (!this.saidFirstSilt && this.mode === 'egypt') {
+                this.saidFirstSilt = true;
+                this.say(ADVISOR.egypt.firstSilt);
+            }
         }
-    </script>
+
+        // Egypt narrative beats
+        if (this.mode === 'egypt') {
+            const cycle = (this.turn - 1) % this.egyptCycleLength + 1;
+            if (cycle === 9) this.say(ADVISOR.egypt.preFlood);
+            else if (cycle === 12 && destroyed === 0) { this.say(ADVISOR.egypt.flooding); this.bumpMood(4); }
+        }
+
+        // 4. Roll next month & omen (Mesopotamia)
+        if (this.mode === 'meso') {
+            this.pendingMeso = this.rollMesoRiver(this.riverWidth);
+            this.showOmen();
+        }
+
+        this.renderVillage();
+        this.renderMood();
+        this.updateUI();
+        this.renderEnergy();
+    }
+
+    /* ---------- Rivers ---------- */
+    calculateEgyptRiver() {
+        const cycle = (this.turn - 1) % this.egyptCycleLength + 1;
+        let targetWidth = 0, msg = '';
+
+        if (cycle <= 9) { targetWidth = 0; msg = `Flood in ${10 - cycle}`; }
+        else if (cycle === 10) { targetWidth = 1; msg = 'RISING'; }
+        else if (cycle === 11) { targetWidth = 3; msg = 'FLOODING'; }
+        else if (cycle === 12) { targetWidth = 5; msg = 'PEAK'; }
+        else if (cycle === 13) { targetWidth = 5; msg = 'PEAK'; }
+        else if (cycle === 14) { targetWidth = 3; msg = 'RECEDING'; }
+        else if (cycle === 15) { targetWidth = 1; msg = 'RECEDING'; }
+        else { targetWidth = 0; msg = 'SAFE'; }
+
+        this.ui.floodTimer.textContent = msg;
+        this.ui.floodTimer.classList.toggle('danger', cycle >= 8 && cycle <= 13);
+        this.ui.season.textContent = SEASONS_EGYPT[cycle];
+        return targetWidth;
+    }
+
+    rollMesoRiver(cur) {
+        const r = Math.random();
+        if (cur === 0) {
+            if (r < 0.15) return { w: 1, ev: 'rise' };
+            if (r < 0.20) return { w: 4, ev: 'flash' };
+            return { w: 0, ev: 'calm' };
+        }
+        if (r < 0.3) return { w: Math.min(5, cur + 1), ev: 'rising' };
+        if (r < 0.7) return { w: Math.max(0, cur - 1), ev: 'receding' };
+        return { w: cur, ev: 'holding' };
+    }
+
+    showMesoStatus(evt) {
+        const map = {
+            calm:     ['Calm', 'st-calm'],
+            rise:     ['Rising…', 'st-rise'],
+            flash:    ['FLASH FLOOD!', 'st-flood'],
+            rising:   ['Rising!', 'st-rise'],
+            receding: ['Receding', 'st-recede'],
+            holding:  ['Holding…', 'st-rise']
+        };
+        const [txt, cls] = map[evt.ev];
+        this.ui.mesoStatus.textContent = txt;
+        this.ui.mesoStatus.className = cls;
+        if (evt.ev === 'flash') this.log('FLASH FLOOD! The Tigris bursts its banks!', 'bad');
+        this.ui.season.textContent = 'The plain between two rivers';
+    }
+
+    showOmen() {
+        // Omens hint at NEXT month's river — but they lie sometimes. That's the point.
+        const p = this.pendingMeso;
+        const dangerous = p.ev === 'flash' || (p.ev === 'rising' && p.w >= 3);
+        let stormy;
+        if (p.ev === 'flash') stormy = Math.random() < 0.75;       // usually warned… usually
+        else if (dangerous || p.ev === 'rise') stormy = Math.random() < 0.4;
+        else stormy = Math.random() < 0.15;                        // false alarms keep you honest
+        const pool = stormy ? OMENS_STORM : OMENS_CALM;
+        this.ui.omenText.textContent = pool[Math.floor(Math.random() * pool.length)];
+        this.wasFalseAlarm = stormy && p.ev === 'calm';
+    }
+
+    /* ---------- Census / worksheet checkpoints ---------- */
+    showCensus(month, techAfter) {
+        this.censusTechAfter = !!techAfter;
+        this.sfx.scroll();
+        this.ui.censusSub.textContent = `Month ${month}`;
+        this.ui.censusFood.textContent = this.food;
+        this.ui.censusTitle.textContent = month >= 40 ? 'The Final Census' : 'The Scribe’s Census';
+        this.ui.censusNote.innerHTML = month >= 40
+            ? '✍️ Record this as your <b>Final Food Count</b> in Part 2 of your lab packet.'
+            : '✍️ Pause! Record this <b>Food Count</b> in Part 2 of your lab packet before continuing.';
+        this.ui.modalCensus.classList.remove('hidden');
+    }
+
+    /* ---------- Visual state ---------- */
+    updateRiverVisuals() {
+        const wrap = this.ui.grid;
+        const colWidth = wrap.offsetWidth / this.cols;
+        const targetPx = this.riverWidth * colWidth;
+        this.ui.overlay.style.width = targetPx + 'px';
+        this.ui.overlay.classList.toggle('surging', this.riverWidth > 0);
+        this.ui.river.style.opacity = 1;
+    }
+
+    updateUI() {
+        this.ui.food.textContent = this.food;
+        this.ui.turn.textContent = this.turn;
+    }
+
+    renderEnergy() {
+        this.ui.energy.innerHTML = '';
+        for (let i = 0; i < this.energyMax; i++) {
+            const pip = document.createElement('div');
+            pip.className = `pip ${i >= this.energy ? 'spent' : ''}`;
+            this.ui.energy.appendChild(pip);
+        }
+    }
+
+    toggleSound() {
+        this.sfx.setEnabled(!this.sfx.enabled);
+        this.ui.btnSound.textContent = this.sfx.enabled ? '\u{1F50A}' : '\u{1F507}';
+    }
+}
+
+/* ============================= GLUE ============================= */
+const sfx = new Sfx();
+let game = null;
+
+function startGame(mode) {
+    game = new Game(sfx);
+    sfx.ensure();
+    game.ui.btnSound.textContent = sfx.enabled ? '\u{1F50A}' : '\u{1F507}';
+    game.init(mode);
+    sfx.tech();
+}
+
+function closeTechModal() {
+    $('modal-tech').classList.add('hidden');
+}
+
+function closeCensusModal() {
+    $('modal-census').classList.add('hidden');
+    if (game && game.censusTechAfter) {
+        game.censusTechAfter = false;
+        sfx.tech();
+        $('modal-tech').classList.remove('hidden');
+    }
+}
+
+function exitToMenu() {
+    $('game-ui').classList.add('hidden');
+    $('modal-start').classList.remove('hidden');
+    document.body.classList.remove('civ-egypt', 'civ-meso');
+}
+
+window.addEventListener('resize', () => { if (game) game.updateRiverVisuals(); });
+</script>
 </body>
 </html>
-
-
