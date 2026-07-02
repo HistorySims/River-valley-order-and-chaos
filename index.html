@@ -516,7 +516,7 @@ footer {
             <b>walls of earth and brick</b>. You can now build <b>Levees</b>.
             <div class="row"><span class="ico">&#128274;</span><span><b>CLOSE the gate:</b> blocks small floods. Crops are safe &mdash; but no fresh silt reaches your fields.</span></div>
             <div class="row"><span class="ico">&#128275;</span><span><b>OPEN the gate:</b> water flows in, drowning crops &mdash; but it leaves rich black silt behind.</span></div>
-            <div class="row"><span class="ico">&#9888;&#65039;</span><span>A <b>massive</b> flood can smash a closed gate. Nothing is certain here.</span></div>
+            <div class="row"><span class="ico">&#9888;&#65039;</span><span>A <b>massive</b> flood can smash a closed gate &mdash; but a freshly rebuilt levee is packed hard and will hold for a good while.</span></div>
         </div>
         <button class="modal-btn" onclick="closeTechModal()">Construct Levees</button>
     </div>
@@ -686,7 +686,7 @@ const $ = id => document.getElementById(id);
 class Sfx {
     constructor() {
         this.ctx = null;
-        this.enabled = localStorage.getItem('rv-sound') !== 'off';
+        this.enabled = localStorage.getItem('rv-sound') === 'on'; // muted by default
         this.ambient = null;
     }
     ensure() {
@@ -797,6 +797,7 @@ const ADVISOR = {
         cropsLost: '“The gods flood the world for no reason at all. Do not look for fairness, Enki. Look for higher ground.”',
         tech: '“If the gods will not protect our fields, we will do it ourselves. Sweat is more reliable than prayer.”',
         leveeHeld: '“The wall held! You see? Our own two hands did what no offering ever could.”',
+        leveeStrained: '“Look at it shudder — and still it holds! Every basket of packed earth was worth the sweat, Enki.”',
         leveeBroke: '“The river laughs at our little wall… Then we build it again. And again. That is who we are.”',
         goodHarvest: '“A full granary… for now. Enjoy it tonight; guard it tomorrow.”'
     }
@@ -825,6 +826,8 @@ class Game {
         this.leveeUnlocked = false;
         this.hasLevee = false;
         this.leveeOpen = false;
+        this.lastBreakTurn = 0;       // a levee can only be smashed once per BREAK_COOLDOWN months
+        this.breakCooldown = 12;
 
         this.pendingMeso = null;      // pre-rolled next-month river state (fuels the omens)
         this.saidFirstSilt = false;
@@ -1096,15 +1099,17 @@ class Game {
 
     /* ---------- Levee ---------- */
     checkEvents() {
-        if (this.mode === 'meso' && this.turn === 20 && !this.leveeUnlocked) {
+        const unlockingLevee = this.mode === 'meso' && this.turn === 20 && !this.leveeUnlocked;
+        if (unlockingLevee) {
             this.leveeUnlocked = true;
-            this.showCensus(20, true);   // census first; tech modal follows on Continue
             this.ui.leveeControls.classList.remove('hidden');
             this.ui.btnBuild.classList.remove('hidden');
             this.ui.btnToggle.classList.add('hidden');
             this.log('Technology discovered: Levees!', 'tech');
-        } else if (this.turn === 20 || this.turn === 40) {
-            this.showCensus(this.turn, false);
+        }
+        if (this.turn === 20 || this.turn === 40) {
+            // Census first; the tech-unlock modal (if any) follows once it's closed.
+            this.showCensus(this.turn, unlockingLevee);
         }
     }
 
@@ -1181,7 +1186,16 @@ class Game {
                     this.sfx.build();
                     this.log('The levee held back the water!', 'good');
                     this.say(ADVISOR.meso.leveeHeld);
+                } else if (this.lastBreakTurn > 0 && this.turn - this.lastBreakTurn < this.breakCooldown) {
+                    // Recently rebuilt and packed hard — it strains, but holds.
+                    actualWidth = 0;
+                    this.bumpMood(14);
+                    this.sfx.flood();
+                    this.shakeScreen();
+                    this.log('A massive flood slams the levee… it groans, but HOLDS!', 'good');
+                    this.say(ADVISOR.meso.leveeStrained);
                 } else {
+                    this.lastBreakTurn = this.turn;
                     this.hasLevee = false;
                     this.leveeOpen = false;
                     this.sfx.crash();
@@ -1335,8 +1349,8 @@ class Game {
     }
 
     /* ---------- Census / worksheet checkpoints ---------- */
-    showCensus(month, techAfter) {
-        this.censusTechAfter = !!techAfter;
+    showCensus(month, techAfter = false) {
+        this.censusTechAfter = techAfter;
         this.sfx.scroll();
         this.ui.censusSub.textContent = `Month ${month}`;
         this.ui.censusFood.textContent = this.food;
