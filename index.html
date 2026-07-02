@@ -491,7 +491,7 @@ footer {
                 <blockquote>"Never trust the quiet. The river is a sleeping dragon. You must always be ready."<br>&mdash; Enki's mother</blockquote>
                 <div class="traits">
                     <span>&#9889; <b>Unpredictable</b> flash floods &mdash; read the omens</span>
-                    <span>&#128679; Unlock <b>levee technology</b> at Month 10</span>
+                    <span>&#128679; Unlock <b>levee technology</b> at Month 20</span>
                     <span>&#128552; Survive chaos through invention</span>
                 </div>
             </button>
@@ -512,7 +512,7 @@ footer {
         <h2>Technology Discovered!</h2>
         <h3>Hydraulic Engineering</h3>
         <div class="body">
-            Ten months of floods have taught your engineers to fight the river with
+            After 20 months of floods, your engineers have learned to fight the river with
             <b>walls of earth and brick</b>. You can now build <b>Levees</b>.
             <div class="row"><span class="ico">&#128274;</span><span><b>CLOSE the gate:</b> blocks small floods. Crops are safe &mdash; but no fresh silt reaches your fields.</span></div>
             <div class="row"><span class="ico">&#128275;</span><span><b>OPEN the gate:</b> water flows in, drowning crops &mdash; but it leaves rich black silt behind.</span></div>
@@ -1099,17 +1099,17 @@ class Game {
 
     /* ---------- Levee ---------- */
     checkEvents() {
-        if (this.mode === 'meso' && this.turn === 10 && !this.leveeUnlocked) {
+        const unlockingLevee = this.mode === 'meso' && this.turn === 20 && !this.leveeUnlocked;
+        if (unlockingLevee) {
             this.leveeUnlocked = true;
-            this.sfx.tech();
-            this.ui.modalTech.classList.remove('hidden');
             this.ui.leveeControls.classList.remove('hidden');
             this.ui.btnBuild.classList.remove('hidden');
             this.ui.btnToggle.classList.add('hidden');
             this.log('Technology discovered: Levees!', 'tech');
         }
         if (this.turn === 20 || this.turn === 40) {
-            this.showCensus(this.turn);
+            // Census first; the tech-unlock modal (if any) follows once it's closed.
+            this.showCensus(this.turn, unlockingLevee);
         }
     }
 
@@ -1349,7 +1349,8 @@ class Game {
     }
 
     /* ---------- Census / worksheet checkpoints ---------- */
-    showCensus(month) {
+    showCensus(month, techAfter = false) {
+        this.censusTechAfter = techAfter;
         this.sfx.scroll();
         this.ui.censusSub.textContent = `Month ${month}`;
         this.ui.censusFood.textContent = this.food;
@@ -1408,6 +1409,11 @@ function closeTechModal() {
 
 function closeCensusModal() {
     $('modal-census').classList.add('hidden');
+    if (game && game.censusTechAfter) {
+        game.censusTechAfter = false;
+        sfx.tech();
+        $('modal-tech').classList.remove('hidden');
+    }
 }
 
 function exitToMenu() {

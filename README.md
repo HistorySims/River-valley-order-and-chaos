@@ -15,7 +15,7 @@ dependencies, so it also works offline on classroom Chromebooks.
 | Round 1: "look at the Flood Timer" | Egypt shows a visual **Nilometer** with the "Mark of Plenty" plus a flood countdown; the flood follows the same fixed 16-month cycle every time |
 | Round 1/2: food counts at Month 20 & 40 | A **Scribe's Census** modal pauses the game at Months 20 and 40, shows total food harvested, and tells students to record it in Part 2 of the packet |
 | Round 2: "no timer… unpredictable" | Mesopotamia has no countdown — only **omens** that hint at next month's river *and sometimes lie* (false alarms and silent flash floods give students their "the game tricked me" moment) |
-| Round 2: Technology unlock | Levee unlock modal appears at Month 10; gates can be **closed** (blocks small floods, no silt) or **opened** (floods fields, captures silt); huge floods can breach a closed gate, but never more than once per 12 months |
+| Round 2: Technology at Month 20 | Levee unlock modal appears at Month 20 (chained after that month's census so nothing overlaps); gates can be **closed** (blocks small floods, no silt) or **opened** (floods fields, captures silt); huge floods can breach a closed gate, but never more than once per 12 months |
 | Part 3: Safety vs. Anxiety → religion | The **village mood** indicator drifts toward "At Peace — Ma'at" in Egypt and "Fearful — the gods are angry" in Mesopotamia, making the emotional contrast visible and discussable |
 | Silt economics | Flooded plots turn to black silt (3× harvest) that dries out after 6 months; dry earth yields 1× |
 
